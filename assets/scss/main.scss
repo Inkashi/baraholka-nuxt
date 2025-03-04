@@ -1,0 +1,41 @@
+@use "sass:color";
+
+$primary-color: #008d49;
+$second-color: #00569d;
+$window-color: #d9d9d9;
+
+body {
+  background-color: $window-color;
+}
+
+input {
+  @apply shadow-md;
+  height: 30px;
+  padding: 5px;
+  font-size: 1vw;
+  border: 2px solid $primary-color;
+  border-radius: 5px;
+  margin-top: 5px;
+  background-color: $window-color;
+  &::placeholder {
+    color: $primary-color;
+  }
+
+  &:focus {
+    border-color: color.adjust($primary-color, $lightness: -10%);
+    background-color: color.adjust($window-color, $lightness: +5%);
+    outline: none;
+  }
+}
+
+.btn {
+  padding: 3px 10px;
+  background-color: $primary-color;
+  border-radius: 5px;
+  width: max-content;
+  color: white;
+
+  &:hover {
+    background-color: color.adjust($primary-color, $lightness: -5%);
+  }
+}
