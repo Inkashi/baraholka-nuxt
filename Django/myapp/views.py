@@ -1,0 +1,103 @@
+from rest_framework.views import APIView
+from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
+from .models import User, Product, Category, PicturesCollection
+from django.contrib.auth import authenticate, login, logout
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.core.serializers import serialize
+from django.contrib.auth.hashers import make_password
+
+# Регистрация
+class RegisterView(APIView):
+    def post(self, request):
+        # Извлечение данных из запроса
+        name = request.data.get('name')
+        password = request.data.get('password')
+        email = request.data.get('email')
+        photoPath = request.data.get('photoPath', '')  # Необязательное поле
+
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'Пользователь с таким email уже существует'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Хеширование пароля
+        hashed_password = make_password(password)
+
+        # Создание пользователя
+        user = User.objects.create(
+            name=name,
+            password=hashed_password,
+            email=email,
+            photoPath=photoPath
+        )
+
+        # Создание JWT-токенов
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'message': 'Регистрация успешна',
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        }, status=status.HTTP_201_CREATED)
+# Авторизация
+class LoginView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        user = authenticate(request, email=email, password=password)
+        if user is None:
+            return Response({'error': 'Неверное имя пользователя или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'message': 'Авторизация успешна',
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+        }, status=status.HTTP_200_OK)
+
+# Выход
+class LogoutView(APIView):
+    def post(self, request):
+        logout(request)
+        return Response({'message': 'Выход выполнен успешно'}, status=status.HTTP_200_OK)
+    
+
+class getProducts(APIView):
+    def get(self, request):
+        start = request.data.get('start')
+        end = request.data.get('end')
+        products = Product.objects.all()[start:end]
+        return JsonResponse(products, safe=False)
+
+class createProduct(APIView):
+    def post(self, request):
+        title = request.data.get('name')
+        description = request.data.get('description')
+        category = Category.objects.get(id = request.data.get('category'))
+        seller = User.objects.get(id = request.data.get('seller'))
+        cost = request.data.get('cost')
+        picturesCollection = PicturesCollection.objects.create()
+
+        try:
+            Product.objects.create(title=title,
+                                    description=description,
+                                    category=category,
+                                    cost=cost,
+                                    seller = seller,
+                                    picturesCollection = picturesCollection)
+            return Response('All good', status=status.HTTP_200_OK)
+        except: 
+            return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class getCategories(APIView):
+    def get(self, request):
+        
+        categories = Category.objects.all()
+        serialized_data = serialize('json', categories)
+        return JsonResponse(serialized_data, safe=False)

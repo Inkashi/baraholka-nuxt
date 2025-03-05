@@ -1,11 +1,36 @@
 <script setup lang="ts">
+import axios from "axios";
+
 const email = ref<string>("");
 const name = ref<string>("");
 const pass = ref<string>("");
 const verifypass = ref<string>("");
 
 const submitForm = async () => {
-  console.log(email.value);
+  try {
+  // Данные для отправки на сервер
+  const formData = {
+      name: name.value,
+      email: email.value,
+      password: pass.value,
+    };
+
+    // Отправка POST-запроса на сервер Django
+    const response = await axios.post("http://localhost:8000/api/auth/register/", formData);
+    console.log(response.data)
+    // Обработка успешного ответа
+    alert(response.data || "Вы успешно зарегистрированы!");
+  } catch (error: any) {
+    // Обработка ошибок
+    if (error.response) {
+      console.error(error.response.data);
+      alert("Ошибка регистрации: " + error.response.data.detail || "Что-то пошло не так");
+    } else {
+      console.error(error);
+      alert("Произошла ошибка при отправке запроса.");
+    }
+  }
+
 };
 </script>
 <template>
@@ -50,6 +75,8 @@ const submitForm = async () => {
     </div>
   </div>
 </template>
+
+
 <style lang="scss" scoped>
 @use "~/assets/scss/main.scss" as main;
 @use "sass:color";
