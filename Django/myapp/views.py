@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
 from django.contrib.auth.hashers import make_password
+import base64, json
 
 # Регистрация
 class RegisterView(APIView):
@@ -101,3 +102,22 @@ class getCategories(APIView):
         categories = Category.objects.all()
         serialized_data = serialize('json', categories)
         return JsonResponse(serialized_data, safe=False)
+    
+class getUser(APIView):
+    def get(self, request):
+        token = request.data.get('token')
+        
+        res = token.split('.')[1]
+        return JsonResponse(self.decode_jwt_part(res))
+    def decode_jwt_part(self, base64url_string):
+        padding = len(base64url_string) % 4
+        if padding != 0:
+            base64url_string += "=" * (4 - padding)
+
+        base64_string = base64url_string.replace('-', '+').replace('_', '/')
+        
+        decoded_bytes = base64.b64decode(base64_string)
+        decoded_string = decoded_bytes.decode('utf-8')
+        return json.loads(decoded_string)
+    
+   
