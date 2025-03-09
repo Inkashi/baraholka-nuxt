@@ -1,9 +1,48 @@
 <script setup lang="ts">
+import axios from "axios";
+const { $auth } = useNuxtApp();
 const email = ref<string>("");
 const pass = ref<string>("");
 
-const login = () => {
-  console.log(email);
+const config = useRuntimeConfig();
+const apiBase = config.public.apiBase;
+
+const login = async () => {
+  try {
+    const formData = {
+      email: email.value,
+      password: pass.value,
+    };
+
+    const response = await axios.post(`${apiBase}/api/auth/login/`, formData);
+    console.log(response.data);
+    const authToken = useCookie("auth_token", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 300,
+    });
+    const refreshToken = useCookie("refresh_token", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 86400,
+    });
+
+    authToken.value = response.data.tokens.access;
+    refreshToken.value = response.data.tokens.refresh;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(error.response.data);
+      alert(
+        "Ошибка регистрации: " + error.response.data.detail ||
+          "Что-то пошло не так"
+      );
+    } else {
+      console.error(error);
+      alert("Произошла ошибка при отправке запроса.");
+    }
+  }
 };
 </script>
 
