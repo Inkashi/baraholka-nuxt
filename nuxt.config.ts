@@ -11,7 +11,13 @@ export default defineNuxtConfig({
   },
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss", "@nuxt/icon", "nuxt-auth-utils"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@nuxt/icon",
+    "nuxt-auth-utils",
+    "@pinia/nuxt",
+    "pinia-plugin-persistedstate/nuxt",
+  ],
   icon: {
     serverBundle: {
       collections: ["mdi"],

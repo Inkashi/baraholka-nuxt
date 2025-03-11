@@ -14,19 +14,30 @@
           </a>
         </div>
       </div>
-      <nav class="flex items-center gap-4 z-10">
-        <a href="#"
-          ><Icon name="tabler:message-circle-filled" size="48" color="blue"
-        /></a>
-        <a
-          href="#"
-          class="bg-white hover:bg-white-500 text-white font-semibold py-2 px-4 rounded-full flex items-center h-10"
-        >
-          <i class="fas fa-comment-alt mr-2"></i>
-          <p class="text-blue-600">Разместить объявление</p>
-        </a>
-        <a href="#"><Icon name="ic:round-account-circle" size="48" /></a>
-        <a href="#"><Icon name="mdi:heart" size="48" /></a>
+      <nav class="gap-4 z-10">
+        <div v-if="isAuth" class="flex items-center">
+          <a href="#"
+            ><Icon name="tabler:message-circle-filled" size="48" color="blue"
+          /></a>
+          <a
+            href="#"
+            class="bg-white hover:bg-white-500 text-white font-semibold py-2 px-4 rounded-full flex items-center h-10"
+          >
+            <i class="fas fa-comment-alt mr-2"></i>
+            <p class="text-blue-600">Разместить объявление</p>
+          </a>
+          <a href="#"><Icon name="ic:round-account-circle" size="48" /></a>
+          <a href="#"><Icon name="mdi:heart" size="48" /></a>
+        </div>
+        <div v-else>
+          <a
+            href="/auth/login"
+            class="bg-white hover:bg-white-500 text-white font-semibold py-2 px-4 rounded-full flex items-center h-10"
+          >
+            <i class="fas fa-comment-alt mr-2"></i>
+            <p class="text-blue-600">Войти</p>
+          </a>
+        </div>
       </nav>
     </div>
   </header>
@@ -53,6 +64,16 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
+const userStore = useAuthStore();
+
+const isAuth = ref(userStore.isAuth);
+
+watch(
+  () => userStore.isAuth,
+  (newIsAuth) => {
+    isAuth.value = newIsAuth;
+  }
+);
 
 const isAuthRoute = computed(() => {
   return route.name === "auth-register" || route.name === "auth-login";

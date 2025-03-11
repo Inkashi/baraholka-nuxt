@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import axios from "axios";
-const { $auth } = useNuxtApp();
 const email = ref<string>("");
 const pass = ref<string>("");
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
+
+const userInfo = useAuthStore();
 
 const login = async () => {
   try {
@@ -15,7 +16,6 @@ const login = async () => {
     };
 
     const response = await axios.post(`${apiBase}/api/auth/login/`, formData);
-    console.log(response.data);
     const authToken = useCookie("auth_token", {
       httpOnly: false,
       secure: true,
@@ -31,6 +31,7 @@ const login = async () => {
 
     authToken.value = response.data.tokens.access;
     refreshToken.value = response.data.tokens.refresh;
+    userInfo.loginUser();
   } catch (error: any) {
     if (error.response) {
       console.error(error.response.data);
@@ -66,10 +67,7 @@ const login = async () => {
         alt="Logo"
       />
     </div>
-    <form
-      @submit.prevent="login"
-      class="flex flex-col w-96 space-y-1 self-center"
-    >
+    <form @submit.prevent="login" class="login-form">
       <input type="email" placeholder="почта" v-model="email" class="input" />
       <input
         type="password"
@@ -77,7 +75,7 @@ const login = async () => {
         v-model="pass"
         class="input"
       />
-      <div class="flex space-x-4">
+      <div class="flex justify-between">
         <button type="submit" class="btn log">вход</button>
         <a class="btn" href="/auth/register">регистрация</a>
       </div>
@@ -112,6 +110,11 @@ p {
   padding: 1rem 4rem;
 }
 
+.login-form {
+  @apply flex flex-col  space-y-1 self-center;
+  width: 24rem;
+}
+
 input {
   border: 2px solid main.$second-color;
   &::placeholder {
@@ -134,7 +137,7 @@ input {
 }
 
 .btn {
-  width: 70%;
+  width: 65%;
   font-weight: 600;
   text-align: center;
   align-items: center;
