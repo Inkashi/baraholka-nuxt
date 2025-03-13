@@ -13,14 +13,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const config = useRuntimeConfig();
   const apiBase = config.public.apiBase as string;
-
+  const userStore = useAuthStore();
   const authCookie = useCookie<string | null>("auth_token");
   const refreshCookie = useCookie<string | null>("refresh_token");
-
   if (to.path.startsWith("/api") || to.path.includes("._nuxt")) return;
 
   if (!authCookie.value || !refreshCookie.value) {
-    return redirectToLogin();
+    return redirectToMain();
   }
 
   try {
@@ -28,9 +27,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
       method: "POST",
       body: { token: authCookie.value },
     });
+    isAuth();
   } catch {
     try {
-      // Явно указываем тип ответа
       const response = await $fetch<TokenRefreshResponse>(
         `${apiBase}/api/token/refresh/`,
         {
@@ -38,18 +37,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
           body: { refresh: refreshCookie.value },
         }
       );
-
-      // Теперь TypeScript знает о структуре ответа
       authCookie.value = response.access;
-      refreshCookie.value = response.refresh;
+      isAuth();
     } catch {
       authCookie.value = null;
       refreshCookie.value = null;
-      return redirectToLogin();
+      userStore.logoutUser();
+      return redirectToMain();
     }
   }
 
-  function redirectToLogin() {
-    return navigateTo("/auth/login");
+  function redirectToMain() {
+    if (!["/"].includes(to.path)) {
+      return navigateTo("/", { external: true });
+    }
+  }
+
+  function isAuth() {
+    if (!userStore.isAuth) {
+      userStore.loginUser();
+    }
   }
 });
