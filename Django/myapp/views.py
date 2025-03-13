@@ -118,6 +118,16 @@ class getUser(APIView):
         
         decoded_bytes = base64.b64decode(base64_string)
         decoded_string = decoded_bytes.decode('utf-8')
-        return json.loads(decoded_string)
+        userId = json.loads(decoded_string)['user_id']
+
+        user = User.objects.get(id = userId)
+
+        data = {
+            'id':user.id,
+            'email':user.email,
+            'name':getattr(user, 'name', None)
+        }
+        
+        return data
     
    
