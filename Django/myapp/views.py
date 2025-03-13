@@ -75,6 +75,45 @@ class getProducts(APIView):
         end = request.data.get('end')
         products = Product.objects.all()[start:end]
         return JsonResponse(products, safe=False)
+    
+class getProductsById(APIView):
+    def get(self, request):
+        id = request.data.get('id')
+        start = request.data.get('start')
+        end = request.data.get('end')
+
+        product_data = []
+        products = Product.objects.filter(seller = id)[int(start):int(end)]
+
+        usr = User.objects.get(id=id)
+        user = {
+        'id':usr.id,
+        'email':usr.email,
+        'name':getattr(usr, 'name', None)
+        }
+
+        for product in products:
+            
+            categry = Category.objects.get(id=product.category.id)
+            category = {
+                'id': categry.id,
+                'title': categry.title
+            }
+
+            product_data.append(
+                    {
+                    'id': product.id,
+                    'seller': user,
+                    'title':product.title,
+                    'description':product.description,
+                    'category':category,
+                    'cost': product.cost,
+                    'picturesCollection':product.picturesCollection.id,
+                    })
+
+        
+        
+        return JsonResponse(product_data ,safe=False)
 
 class createProduct(APIView):
     def post(self, request):
