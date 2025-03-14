@@ -2,12 +2,13 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Product, Category, PicturesCollection
+from .models import User, Product, Category, PicturesCollection, Chat, Message
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
 from django.contrib.auth.hashers import make_password
 import base64, json
+from django.db.models import Q
 
 # Регистрация
 class RegisterView(APIView):
@@ -168,5 +169,87 @@ class getUser(APIView):
         }
         
         return data
+    
+class getMessages(APIView):
+    def get(self, request):
+        first = request.data.get('firstUser')
+        firstUser = User.objects.get(id=first)
+        second = request.data.get('secondUser')
+        secondUser = User.objects.get(id=second)
+        try:
+            chat = Chat.objects.filter(
+                firstUser=firstUser, secondUser=secondUser
+            ).first() or Chat.objects.filter(
+                firstUser=secondUser, secondUser=firstUser
+            ).first()
+
+            if chat:
+                # Если чат существует, возвращаем его ID
+                return Response({'chat_id': chat.id}, status=status.HTTP_200_OK)
+            chat = Chat.objects.create(
+                    firstUser = firstUser,
+                    secondUser = secondUser
+                )
+            return Response({'chat_id': chat.id}, status=status.HTTP_200_OK)
+        except:
+            return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+    def post(self,request):
+        sender = request.data.get('sender')
+        senderUser = User.objects.get(id=sender)
+        receiver = request.data.get('receiver')
+        receiverUser = User.objects.get(id=receiver)
+
+        chat = Chat.objects.filter(
+            firstUser = senderUser , secondUser = receiverUser
+            ).first() or Chat.objects.filter(
+                firstUser = receiverUser , secondUser = senderUser
+                ).first()
+        message = request.data.get('message')
+        sendingTime = request.data.get('sendingTime')
+
+        try:
+            messsage = Message.objects.create(
+                chat = chat,
+                message = message,
+                sendingTime = sendingTime,
+                sender = senderUser,
+                receiver = receiverUser
+            ) 
+            return Response('All good', status=status.HTTP_200_OK)
+        except: 
+            return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class getChats(APIView):
+    def get(self,request):
+        userId = request.data.get('user_id')
+        user = User.objects.get(id = userId)
+
+        chats = []
+        filteredChats = Chat.objects.filter(Q(firstUser = user) | Q(secondUser = user))
+        
+        for chat in filteredChats:
+            firstUser = {
+                'id': chat.firstUser.id,
+                'name': chat.firstUser.name,
+                'photo': chat.firstUser.photoPath 
+            }
+            secondUser = {
+                'id': chat.secondUser.id,
+                'name': chat.secondUser.name,
+                'photo': chat.secondUser.photoPath 
+            }
+            chats.append(
+                {
+                    'id':chat.id,
+                    'firstUser':firstUser,
+                    'secondUser':secondUser
+                }
+            )
+        return Response({'chats':chats}, status=status.HTTP_200_OK)
+
+
+
+
     
    
