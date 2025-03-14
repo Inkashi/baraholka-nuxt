@@ -16,6 +16,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const userStore = useAuthStore();
   const authCookie = useCookie<string | null>("auth_token");
   const refreshCookie = useCookie<string | null>("refresh_token");
+  if (!userStore.isAuth) {
+    authCookie.value = null;
+    refreshCookie.value = null;
+  }
   if (to.path.startsWith("/api") || to.path.includes("._nuxt")) return;
 
   if (!authCookie.value || !refreshCookie.value) {

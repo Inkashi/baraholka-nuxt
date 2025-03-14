@@ -15,6 +15,7 @@ export const useAuthStore = defineStore("auth", {
     },
     logoutUser() {
       this.isAuth = false;
+      navigateTo("/");
     },
   },
   persist: true,

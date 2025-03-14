@@ -1,15 +1,52 @@
 <script setup lang="ts">
 import axios from "axios";
+import { ref } from "vue";
+
 const email = ref<string>("");
 const pass = ref<string>("");
+const errorMessage = ref<string>("");
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
 
 const userInfo = useAuthStore();
 
+// Валидация данных перед отправкой запроса
+const validateForm = (): boolean => {
+  if (!email.value.trim()) {
+    errorMessage.value = "Поле 'почта' не может быть пустым.";
+    return false;
+  }
+
+  if (!pass.value.trim()) {
+    errorMessage.value = "Поле 'пароль' не может быть пустым.";
+    return false;
+  }
+
+  // Проверка формата email с помощью регулярного выражения
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    errorMessage.value = "Введите корректный адрес электронной почты.";
+    return false;
+  }
+
+  // Проверка минимальной длины пароля
+  if (pass.value.length < 6) {
+    errorMessage.value = "Пароль должен содержать минимум 6 символов.";
+    return false;
+  }
+
+  errorMessage.value = ""; // Очищаем сообщение об ошибке, если все проверки пройдены
+  return true;
+};
+
 const login = async () => {
   try {
+    // Выполняем валидацию формы перед отправкой запроса
+    if (!validateForm()) {
+      return; // Если форма невалидна, прекращаем выполнение
+    }
+
     const formData = {
       email: email.value,
       password: pass.value,
@@ -36,7 +73,7 @@ const login = async () => {
     if (error.response) {
       console.error(error.response.data);
       alert(
-        "Ошибка регистрации: " + error.response.data.detail ||
+        "Ошибка авторизации: " + error.response.data.detail ||
           "Что-то пошло не так"
       );
     } else {
@@ -68,13 +105,23 @@ const login = async () => {
       />
     </div>
     <form @submit.prevent="login" class="login-form">
-      <input type="email" placeholder="почта" v-model="email" class="input" />
+      <input
+        type="email"
+        placeholder="почта"
+        v-model="email"
+        class="input"
+        required
+      />
       <input
         type="password"
         placeholder="пароль"
         v-model="pass"
         class="input"
+        required
       />
+      <div v-if="errorMessage" class="error-message text-red-500 text-sm">
+        {{ errorMessage }}
+      </div>
       <div class="flex justify-between">
         <button type="submit" class="btn log">вход</button>
         <a class="btn" href="/auth/register">регистрация</a>
@@ -86,6 +133,7 @@ const login = async () => {
 <style lang="scss" scoped>
 @use "~/assets/scss/main.scss" as main;
 @use "sass:color";
+
 h1 {
   text-align: center;
   color: main.$second-color;
@@ -111,7 +159,7 @@ p {
 }
 
 .login-form {
-  @apply flex flex-col  space-y-1 self-center;
+  @apply flex flex-col space-y-1 self-center;
   width: 24rem;
 }
 
@@ -165,5 +213,11 @@ input {
   background-color: color.adjust(main.$window-color, $lightness: +5%);
   margin-left: 5%;
   margin-right: 5%;
+}
+
+.error-message {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: red;
 }
 </style>
