@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import make_password
 import base64, json
 from django.db.models import Q
 import os
+from datetime import datetime
 
 # Регистрация
 class RegisterView(APIView):
@@ -129,32 +130,23 @@ class createProduct(APIView):
         category = Category.objects.get(id = request.data.get('category'))
         seller = User.objects.get(id = request.data.get('seller'))
         cost = request.data.get('cost')
-        picture = request.data.get('picture')
+        picture = request.FILES.get('picture')
         pic = None
 
         try:
-            with open(picture, 'rb') as f:
-                file_name = os.path.basename(picture)
-                
-                target_directory = os.path.join(os.getcwd(), '../pictures')
-                target_path = os.path.join(target_directory, file_name)
+            target_directory = os.path.join(os.getcwd(), '../pictures')
+            os.makedirs(target_directory, exist_ok=True)
 
-                with open(target_path, 'wb') as target_file:
-                    target_file.write(f.read())
-                
-                path = f'pictures/{file_name}'
-                pic = Picture.objects.create(picturePath = path)
+            fileName = picture.name
+            file_name = self.generate_unique_filename(fileName)
 
-        except:
-            Response('Something bad with photo upload',status=status.HTTP_400_BAD_REQUEST)
-        Product.objects.create(title=title,
-                                description=description,
-                                category=category,
-                                cost=cost,
-                                seller = seller,
-                                picture = pic
-                                )
-        try:
+            target_path = os.path.join(target_directory, file_name)
+
+            with open(target_path, 'wb') as destination:
+                for chunk in picture.chunks():
+                    destination.write(chunk)
+            pic = Picture.objects.create(picturePath = f'pictures/{file_name}')
+
             Product.objects.create(title=title,
                                     description=description,
                                     category=category,
@@ -165,6 +157,14 @@ class createProduct(APIView):
             return Response('All good', status=status.HTTP_200_OK)
         except: 
             return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+    def generate_unique_filename(self, original_name):
+        name, ext = os.path.splitext(original_name)
+        
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_name = f"{name}_{timestamp}{ext}"
+        
+        return unique_name
         
 class getCategories(APIView):
     def get(self, request):
@@ -206,6 +206,7 @@ class getMessages(APIView):
         firstUser = User.objects.get(id=first)
         second = request.data.get('secondUser')
         secondUser = User.objects.get(id=second)
+        messages = []
         try:
             chat = Chat.objects.filter(
                 firstUser=firstUser, secondUser=secondUser
@@ -214,13 +215,23 @@ class getMessages(APIView):
             ).first()
 
             if chat:
-                # Если чат существует, возвращаем его ID
-                return Response({'chat_id': chat.id}, status=status.HTTP_200_OK)
+                messags = Message.objects.filter(chat = chat)
+                for mes in messags:
+                    messages.append(
+                        {
+                            'message': mes.message,
+                            'sendingTime': mes.sendingTime,
+                            'sender': mes.sender.id,
+                            'receiver': mes.receiver.id
+                        }
+                    )
+                return Response({'messages':messages}, status=status.HTTP_200_OK)
+                
             chat = Chat.objects.create(
                     firstUser = firstUser,
                     secondUser = secondUser
                 )
-            return Response({'chat_id': chat.id}, status=status.HTTP_200_OK)
+            return Response('', status=status.HTTP_200_OK)
         except:
             return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
         
@@ -236,13 +247,11 @@ class getMessages(APIView):
                 firstUser = receiverUser , secondUser = senderUser
                 ).first()
         message = request.data.get('message')
-        sendingTime = request.data.get('sendingTime')
 
         try:
             messsage = Message.objects.create(
                 chat = chat,
                 message = message,
-                sendingTime = sendingTime,
                 sender = senderUser,
                 receiver = receiverUser
             ) 
@@ -252,11 +261,12 @@ class getMessages(APIView):
         
 class getChats(APIView):
     def get(self,request):
-        userId = request.data.get('user_id')
+        userId = request.query_params.get('user_id')
         user = User.objects.get(id = userId)
 
         chats = []
         filteredChats = Chat.objects.filter(Q(firstUser = user) | Q(secondUser = user))
+        
         
         for chat in filteredChats:
             firstUser = {
@@ -269,11 +279,17 @@ class getChats(APIView):
                 'name': chat.secondUser.name,
                 'photo': chat.secondUser.photoPath 
             }
+            messge = Message.objects.filter(chat = chat.id).last()
+            if messge:
+                message = messge.message
+            else: 
+                message = ''
             chats.append(
                 {
                     'id':chat.id,
                     'firstUser':firstUser,
-                    'secondUser':secondUser
+                    'secondUser':secondUser,
+                    'lastMessage': message
                 }
             )
         return Response({'chats':chats}, status=status.HTTP_200_OK)
@@ -281,20 +297,23 @@ class getChats(APIView):
 class changeUserProfile(APIView):
     def post(self,request):
         userId = request.data.get('user_id')
-        photo = request.data.get('photo')
+        photo = request.FILES.get('photo')
         name = request.data.get('name')
 
         user = User.objects.get(id = userId)
         try:
             if photo:
-                with open(photo, 'rb') as f:
-                    file_name = os.path.basename(photo)
-                    
-                    target_directory = os.path.join(os.getcwd(), '../pictures')
-                    target_path = os.path.join(target_directory, file_name)
+                target_directory = os.path.join(os.getcwd(), '../pictures/users/')
+                os.makedirs(target_directory, exist_ok=True)
 
-                    with open(target_path, 'wb') as target_file:
-                        target_file.write(f.read())
+                fileName = photo.name
+                file_name = self.generate_unique_filename(fileName)
+                target_path = os.path.join(target_directory, file_name)
+
+                with open(target_path, 'wb') as destination:
+                    for chunk in photo.chunks():
+                        destination.write(chunk)
+
                 user.photoPath = f'pictures/{file_name}'
             if name:
                 user.name = name
@@ -302,6 +321,14 @@ class changeUserProfile(APIView):
             return Response('All good', status=status.HTTP_200_OK)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+    def generate_unique_filename(self, original_name):
+        name, ext = os.path.splitext(original_name)
+        
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_name = f"{name}_{timestamp}{ext}"
+        
+        return unique_name
         
 
 

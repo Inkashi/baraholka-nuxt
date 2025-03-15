@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats
+from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -19,5 +19,6 @@ urlpatterns = [
     path('getUser/', getUser.as_view(), name='getUserbyToken'),
     path('getProductsById/', getProductsById.as_view(), name='getProductsById'),
     path('getMessages/', getMessages.as_view(), name='getMessages'), 
-    path('getChats/', getChats.as_view(), name='getChats')
+    path('getChats/', getChats.as_view(), name='getChats'),
+    path('changeUser/', changeUserProfile.as_view(), name='changeUserProfile')
 ]
