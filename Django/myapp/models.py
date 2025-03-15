@@ -61,20 +61,11 @@ class Category(models.Model):
     class Meta:
         db_table = 'categories'
         managed = True
-
-
-class PicturesCollection(models.Model):
-    id = models.AutoField(primary_key=True)
-
-    class Meta:
-        db_table = 'picturesCollections'
-        managed = True
     
 
 class Picture(models.Model):
     id = models.AutoField(primary_key=True)
-    picturesPath = models.CharField(max_length=255)
-    picturesCollection = models.ForeignKey(PicturesCollection, on_delete=models.CASCADE, related_name='pictures')
+    picturePath = models.CharField(max_length=255)
     
     class Meta:
         db_table = 'pictures'
@@ -88,7 +79,7 @@ class Product(models.Model):
     description = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     cost = models.FloatField()
-    picturesCollection = models.ForeignKey(PicturesCollection, on_delete=models.CASCADE, related_name='products')
+    picture = models.ForeignKey(Picture, on_delete=models.CASCADE, related_name='pictures')
 
     class Meta:
         db_table = 'products'
@@ -116,5 +107,7 @@ class Message(models.Model):
     class Meta:
         db_table = 'messages'
         managed = True
+
+
 
     

@@ -2,13 +2,14 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Product, Category, PicturesCollection, Chat, Message
+from .models import User, Product, Category, Chat, Message, Picture
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
 from django.contrib.auth.hashers import make_password
 import base64, json
 from django.db.models import Q
+import os
 
 # Регистрация
 class RegisterView(APIView):
@@ -100,6 +101,11 @@ class getProductsById(APIView):
                 'id': categry.id,
                 'title': categry.title
             }
+            pictre = Picture.objects.get(id=product.picture.id)
+            picture = {
+                'id': pictre.id,
+                'photoPath': pictre.picturePath
+            }
 
             product_data.append(
                     {
@@ -109,7 +115,7 @@ class getProductsById(APIView):
                     'description':product.description,
                     'category':category,
                     'cost': product.cost,
-                    'picturesCollection':product.picturesCollection.id,
+                    'picture':picture,
                     })
 
         
@@ -123,15 +129,39 @@ class createProduct(APIView):
         category = Category.objects.get(id = request.data.get('category'))
         seller = User.objects.get(id = request.data.get('seller'))
         cost = request.data.get('cost')
-        picturesCollection = PicturesCollection.objects.create()
+        picture = request.data.get('picture')
+        pic = None
 
+        try:
+            with open(picture, 'rb') as f:
+                file_name = os.path.basename(picture)
+                
+                target_directory = os.path.join(os.getcwd(), '../pictures')
+                target_path = os.path.join(target_directory, file_name)
+
+                with open(target_path, 'wb') as target_file:
+                    target_file.write(f.read())
+                
+                path = f'pictures/{file_name}'
+                pic = Picture.objects.create(picturePath = path)
+
+        except:
+            Response('Something bad with photo upload',status=status.HTTP_400_BAD_REQUEST)
+        Product.objects.create(title=title,
+                                description=description,
+                                category=category,
+                                cost=cost,
+                                seller = seller,
+                                picture = pic
+                                )
         try:
             Product.objects.create(title=title,
                                     description=description,
                                     category=category,
                                     cost=cost,
                                     seller = seller,
-                                    picturesCollection = picturesCollection)
+                                    picture = pic
+                                    )
             return Response('All good', status=status.HTTP_200_OK)
         except: 
             return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
@@ -247,6 +277,33 @@ class getChats(APIView):
                 }
             )
         return Response({'chats':chats}, status=status.HTTP_200_OK)
+    
+class changeUserProfile(APIView):
+    def post(self,request):
+        userId = request.data.get('user_id')
+        photo = request.data.get('photo')
+        name = request.data.get('name')
+
+        user = User.objects.get(id = userId)
+        try:
+            if photo:
+                with open(photo, 'rb') as f:
+                    file_name = os.path.basename(photo)
+                    
+                    target_directory = os.path.join(os.getcwd(), '../pictures')
+                    target_path = os.path.join(target_directory, file_name)
+
+                    with open(target_path, 'wb') as target_file:
+                        target_file.write(f.read())
+                user.photoPath = f'pictures/{file_name}'
+            if name:
+                user.name = name
+            user.save()
+            return Response('All good', status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+
 
 
 
