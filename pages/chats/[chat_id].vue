@@ -12,6 +12,8 @@
     const user = ref();
     const otherUser = ref();
     let socket: WebSocket;
+    let title = '';
+    const newMessage = ref("");
 
     const fetchUserData = async () => {
         try {
@@ -44,6 +46,7 @@
                 user.value = users.secondUser
                 otherUser.value = users.firstUser
             }
+            title = otherUser.value.name
             
         }
         catch (error) {
@@ -82,6 +85,24 @@
     const getUserPhoto = (message: any) => {
     return message.sender === userId.value ? user.value.photo : otherUser.value.photo;
 };
+
+const sendMessage = async () => {
+    if (!newMessage.value.trim()) return;
+
+    try {
+        const response = await axios.post(`${apiBase}/api/getMessages/`, {
+            sender: user.value.id,
+            receiver: otherUser.value.id,
+            message: newMessage.value,
+        });
+
+        if (response.status === 200) {
+            newMessage.value = ""; 
+        }
+    } catch (error) {
+        console.error("Ошибка при отправке сообщения:", error);
+    }
+};
 </script>
 
 <template>
@@ -91,7 +112,7 @@
     </div>
 
     <div v-else class="chat-container">
-        <h1>Чат ID: {{ chat_id }}</h1>
+        <h1>{{ title }}</h1>
 
         <!-- Список сообщений -->
         <div class="messages-list">
@@ -107,10 +128,10 @@
         </div>
 
         <!-- Форма для отправки сообщений -->
-        <!-- <form @submit.prevent="sendMessage" class="send-message-form">
+        <form @submit.prevent="sendMessage" class="send-message-form">
             <input v-model="newMessage" type="text" placeholder="Ответить..." class="message-input" />
             <button type="submit" class="send-button">Отправить</button>
-        </form> -->
+        </form>
     </div>
 </template>
 

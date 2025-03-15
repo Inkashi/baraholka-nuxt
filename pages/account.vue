@@ -4,6 +4,7 @@ import axios from "axios";
 const config = useRuntimeConfig();
 
 const userName = ref("Имя пользователя");
+const userId = ref();
 const userEmail = ref("email@example.com");
 const userPhoto = ref<string | null>(null);
 const isLoading = ref(true);
@@ -26,9 +27,10 @@ const fetchUserData = async () => {
     });
 
     const userData = response.data;
+    userId.value = userData.id;
     userName.value = userData.name || "Неизвестное имя";
     userEmail.value = userData.email || "Неизвестный email";
-    userPhoto.value = userData.photo || null;
+    userPhoto.value = userData.photoPath || null;
   } catch (error) {
     console.error("Ошибка при получении данных пользователя:", error);
   } finally {
@@ -40,7 +42,7 @@ const handleLogout = () => {
   userStore.logoutUser();
 };
 
-const handleImageUpload = (event: Event) => {
+const handleImageUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
     const isConfirmed = window.confirm(
@@ -51,13 +53,24 @@ const handleImageUpload = (event: Event) => {
     }
 
     const file = target.files[0];
-    const reader = new FileReader();
+    const formData = new FormData();
 
-    reader.onload = (e) => {
-      userPhoto.value = e.target?.result as string;
-    };
+    formData.append('user_id', userId.value);
+    formData.append('photo', file);
 
-    reader.readAsDataURL(file);
+    try {
+      const response = await axios.post(`${apiBase}/api/changeUser/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.status === 200) {
+        userPhoto.value = response.data.photoPath;
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке фотографии:", error);
+    }
   }
 };
 

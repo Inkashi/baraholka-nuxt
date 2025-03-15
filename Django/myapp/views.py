@@ -196,7 +196,9 @@ class getUser(APIView):
         data = {
             'id':user.id,
             'email':user.email,
-            'name':getattr(user, 'name', None)
+            'name':user.name,
+            'photoPath':user.photoPath
+
         }
         
         return data
@@ -251,7 +253,7 @@ class getMessages(APIView):
                     'type': 'chat_message',  # Тип события
                     'message': {
                         'id': message.id,
-                        'text': message.message,
+                        'message': message.message,
                         'sender': message.sender.id,
                         'receiver': message.receiver.id,
                         'sendingTime': message.sendingTime.isoformat(),
@@ -317,7 +319,7 @@ class changeUserProfile(APIView):
                     for chunk in photo.chunks():
                         destination.write(chunk)
 
-                user.photoPath = f'/pictures/{file_name}'
+                user.photoPath = f'/pictures/users/{file_name}'
             if name:
                 user.name = name
             user.save()
