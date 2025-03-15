@@ -9,7 +9,43 @@ const verifypass = ref<string>("");
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
 
+const errors = ref<{ [key: string]: string }>({});
+
+const validateForm = (): boolean => {
+  errors.value = {};
+
+  if (!email.value) {
+    errors.value.email = "Почта обязательна.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errors.value.email = "Введите корректный email.";
+  }
+
+  if (!name.value) {
+    errors.value.name = "Имя обязательно.";
+  } else if (name.value.length < 3) {
+    errors.value.name = "Имя должно содержать минимум 3 символа.";
+  }
+
+  if (!pass.value) {
+    errors.value.password = "Пароль обязателен.";
+  } else if (pass.value.length < 6) {
+    errors.value.password = "Пароль должен содержать минимум 6 символов.";
+  }
+
+  if (!verifypass.value) {
+    errors.value.verifypass = "Подтвердите пароль.";
+  } else if (pass.value !== verifypass.value) {
+    errors.value.verifypass = "Пароли не совпадают.";
+  }
+
+  return Object.keys(errors.value).length === 0;
+};
+
 const submitForm = async () => {
+  if (!validateForm()) {
+    return;
+  }
+
   try {
     const formData = {
       name: name.value,
@@ -37,13 +73,14 @@ const submitForm = async () => {
   }
 };
 </script>
+
 <template>
   <a class="arrow-back" href="/auth/login">Вернуться</a>
-  <div class="h-screen flex items-center justify-center">
+  <div class="reg-form">
     <div class="reg-card">
       <div class="logo">
         <img
-          class="h-24 self-center"
+          class="size-15 self-center"
           src="../../assets/image/logo.png"
           alt="Logo"
         />
@@ -56,23 +93,40 @@ const submitForm = async () => {
             v-model="email"
             class="input"
           />
+          <p v-if="errors.email" class="text-red-500 text-sm">
+            {{ errors.email }}
+          </p>
+
           <input type="text" placeholder="имя" v-model="name" class="input" />
+          <p v-if="errors.name" class="text-red-500 text-sm">
+            {{ errors.name }}
+          </p>
+
           <input
             type="password"
             placeholder="пароль"
             v-model="pass"
             class="input"
           />
+          <p v-if="errors.password" class="text-red-500 text-sm">
+            {{ errors.password }}
+          </p>
+
           <input
             type="password"
             placeholder="повторите пароль"
             v-model="verifypass"
             class="input"
           />
+          <p v-if="errors.verifypass" class="text-red-500 text-sm">
+            {{ errors.verifypass }}
+          </p>
+
           <p class="text-center">
             Нажимая кнопку регистрации вы соглашаетесь с
-            <a class="link" href="#">пользовотельским соглашением</a>
+            <a class="link" href="#">пользовательским соглашением</a>
           </p>
+
           <button class="btn" type="submit">Зарегистрироваться</button>
         </form>
       </div>
@@ -111,6 +165,10 @@ p {
   color: main.$primary-color;
 }
 
+.reg-form {
+  @apply h-screen flex items-center justify-center;
+}
+
 .reg-card {
   @apply w-max flex justify-center flex-col shadow-md;
   background-color: color.scale(
@@ -125,6 +183,7 @@ p {
 .logo {
   @apply mb-2 self-center shadow-md rounded-full h-32 w-32 flex justify-center;
   background-color: color.adjust(main.$window-color, $lightness: +5%);
+  padding: 3%;
 }
 
 .btn {

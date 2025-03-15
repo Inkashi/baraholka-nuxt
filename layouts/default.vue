@@ -26,7 +26,9 @@
             <i class="fas fa-comment-alt mr-2"></i>
             <p class="text-blue-600">Разместить объявление</p>
           </a>
-          <a href="#"><Icon name="ic:round-account-circle" size="48" /></a>
+          <a href="/account"
+            ><Icon name="ic:round-account-circle" size="48"
+          /></a>
           <a href="#"><Icon name="mdi:heart" size="48" /></a>
         </div>
         <div v-else>

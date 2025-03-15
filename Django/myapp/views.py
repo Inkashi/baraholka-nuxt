@@ -175,8 +175,8 @@ class getCategories(APIView):
     
 class getUser(APIView):
     def get(self, request):
-        token = request.data.get('token')
-        
+        token = request.query_params.get('token')
+        print(token)
         res = token.split('.')[1]
         return JsonResponse(self.decode_jwt_part(res))
     def decode_jwt_part(self, base64url_string):
