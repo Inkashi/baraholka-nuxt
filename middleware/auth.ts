@@ -11,18 +11,20 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return;
   }
 
-  const config = useRuntimeConfig();
-  const apiBase = config.public.apiBase as string;
+  const {
+    public: { apiBase },
+  } = useRuntimeConfig();
   const userStore = useAuthStore();
   const authCookie = useCookie<string | null>("auth_token");
   const refreshCookie = useCookie<string | null>("refresh_token");
   if (!userStore.isAuth) {
     authCookie.value = null;
     refreshCookie.value = null;
+    return redirectToMain();
   }
-  if (to.path.startsWith("/api") || to.path.includes("._nuxt")) return;
 
-  if (!authCookie.value || !refreshCookie.value) {
+  if (!authCookie.value && !refreshCookie.value) {
+    userStore.logoutUser();
     return redirectToMain();
   }
 
@@ -52,7 +54,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   function redirectToMain() {
-    if (!["/"].includes(to.path)) {
+    if (to.path !== "/") {
       return navigateTo("/", { external: true });
     }
   }
@@ -63,3 +65,4 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 });
+

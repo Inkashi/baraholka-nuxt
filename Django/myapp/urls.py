@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile, getUsersByChat
+from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile, getUsersByChat, getChatByUsers, getFavoriteCollectionByUser, getFavorites, addFavorite
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -27,5 +27,9 @@ urlpatterns = [
     path('getMessages/', getMessages.as_view(), name='getMessages'), 
     path('getChats/', getChats.as_view(), name='getChats'),
     path('getUsersByChat/', getUsersByChat.as_view(), name='getUsersByChat'),
-    path('changeUser/', changeUserProfile.as_view(), name='changeUserProfile')
+    path('changeUser/', changeUserProfile.as_view(), name='changeUserProfile'),
+    path('getChatByUsers/', getChatByUsers.as_view(), name='getChatByUsers'),
+    path('getFavoriteCollection/', getFavoriteCollectionByUser.as_view(), name='getFavoriteCollectionByUser'),
+    path('getFavorites/', getFavorites.as_view(), name='getFavorites'),
+    path('addFavorite/', addFavorite.as_view(), name='addFavorite'),
 ]

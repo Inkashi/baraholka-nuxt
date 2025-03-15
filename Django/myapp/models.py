@@ -93,6 +93,24 @@ class Product(models.Model):
         db_table = 'products'
         managed = True
 
+class FavoriteCollection(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users')
+
+    class Meta:
+        db_table = 'favoriteColletions'
+        managed = True
+
+class Favorite(models.Model):
+    id = models.AutoField(primary_key=True)
+    productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
+    favoriteCollection = models.ForeignKey(FavoriteCollection, on_delete=models.CASCADE, related_name='favoriteColletions')
+
+    class Meta:
+        db_table = 'favorites'
+        managed = True
+
+
 class Chat(models.Model):
     id = models.AutoField(primary_key=True)
     firstUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chats_as_first_user')

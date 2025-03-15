@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Product, Category, Chat, Message, Picture
+from .models import User, Product, Category, Chat, Message, Picture, Status, FavoriteCollection, Favorite
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
@@ -35,6 +35,8 @@ class RegisterView(APIView):
             password=hashed_password,
             email=email,
         )
+
+        FavoriteCollection.objects.create(user=user)
 
         # Создание JWT-токенов
         refresh = RefreshToken.for_user(user)
@@ -75,10 +77,31 @@ class LogoutView(APIView):
 
 class getProducts(APIView):
     def get(self, request):
-        start = request.data.get('start')
-        end = request.data.get('end')
-        products = Product.objects.all()[start:end]
-        return JsonResponse(products, safe=False)
+        userId = request.query_params.get('userId')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        
+        try:
+            if not userId:
+                tmp = Product.objects.all()[int(start):int(end)]
+            else:
+                user = User.objects.get(id = userId)
+                tmp = Product.objects.exclude(seller=user)[int(start):int(end)]
+            products = []
+
+            for product in tmp:
+                products.append({
+                    'id': product.id,
+                    'title': product.title,
+                    'cost': product.cost,
+                    'picture': product.picture.picturePath,
+                    'description': product.description,
+                    'seller': product.seller.id
+                })
+
+            return JsonResponse(products, safe=False)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
     
 class getProductsById(APIView):
     def get(self, request):
@@ -153,7 +176,8 @@ class createProduct(APIView):
                                     category=category,
                                     cost=cost,
                                     seller = seller,
-                                    picture = pic
+                                    picture = pic,
+                                    status = Status.objects.get(id=1)
                                     )
             return Response('All good', status=status.HTTP_200_OK)
         except: 
@@ -170,9 +194,15 @@ class createProduct(APIView):
 class getCategories(APIView):
     def get(self, request):
         
-        categories = Category.objects.all()
-        serialized_data = serialize('json', categories)
-        return JsonResponse(serialized_data, safe=False)
+        tmp = Category.objects.all()
+        categories = []
+        for category in tmp:
+            categories.append({
+                'id': category.id,
+                'title': category.title
+            })
+            
+        return JsonResponse(categories, safe=False)
     
 class getUser(APIView):
     def get(self, request):
@@ -360,7 +390,80 @@ class getUsersByChat(APIView):
         }
 
         return Response(users, status=status.HTTP_200_OK)
+    
+class getChatByUsers(APIView):
+    def post(self, request):
+        tmp = request.data.get('firstUser')
+        temp = request.data.get('secondUser')
+        print(tmp, temp)
+        
+        try:
+            firstUser = User.objects.get(id=tmp)
+            secondUser = User.objects.get(id=temp)
+            chat = Chat.objects.filter(
+                firstUser=firstUser, secondUser=secondUser
+                ).first() or Chat.objects.filter(firstUser=secondUser, secondUser=firstUser).first()
+            if chat:
+                return Response(chat.id,status=status.HTTP_200_OK)
+            else:
+                chat = Chat.objects.create(
+                    firstUser = firstUser,
+                    secondUser = secondUser
+                )
+                return Response(chat.id,status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
 
+class getFavoriteCollectionByUser(APIView):
+    def post(self, request):
+        tmp = request.data.get('userId')
+        try:
+            user = User.objects.get(id=tmp)
+            favoriteCollection = FavoriteCollection.objects.get(user=user)
+            return Response(favoriteCollection.id,status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class getFavorites(APIView):
+    def post(self, request):
+        favoriteCollection = request.data.get('favoriteCollection')
+        try:
+            favorits = Favorite.objects.filter(id=favoriteCollection)
+            favorites = []
+            for favorite in favorits:
+                favorites.append(
+                    favorite.productId.id
+                )
+            return Response(favorites,status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class addFavorite(APIView):
+    def post(self, request):
+        tmp = request.data.get('favoriteCollection')
+        temp = request.data.get('productId')
+
+        favoriteCollection = FavoriteCollection.objects.get(id=tmp)
+        product = Product.objects.get(id=temp)
+
+        try:
+            favorite, created = Favorite.objects.get_or_create(
+                favoriteCollection=favoriteCollection,
+                productId=product
+            )
+            print(created)
+            if not created:
+                Favorite.objects.create(favoriteCollection=favoriteCollection, productId=product)
+                return Response('All good',status=status.HTTP_200_OK)
+            else:
+                favorite.delete()
+                return Response('All good',status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+
+        
         
 
 
