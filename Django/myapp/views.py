@@ -11,6 +11,9 @@ import base64, json
 from django.db.models import Q
 import os
 from datetime import datetime
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 # Регистрация
 class RegisterView(APIView):
@@ -19,7 +22,6 @@ class RegisterView(APIView):
         name = request.data.get('name')
         password = request.data.get('password')
         email = request.data.get('email')
-        photoPath = request.data.get('photoPath', '')  # Необязательное поле
 
         if User.objects.filter(email=email).exists():
             return Response({'error': 'Пользователь с таким email уже существует'}, status=status.HTTP_400_BAD_REQUEST)
@@ -32,7 +34,6 @@ class RegisterView(APIView):
             name=name,
             password=hashed_password,
             email=email,
-            photoPath=photoPath
         )
 
         # Создание JWT-токенов
@@ -134,7 +135,7 @@ class createProduct(APIView):
         pic = None
 
         try:
-            target_directory = os.path.join(os.getcwd(), '../pictures')
+            target_directory = os.path.join(os.getcwd(), '../public/pictures')
             os.makedirs(target_directory, exist_ok=True)
 
             fileName = picture.name
@@ -145,7 +146,7 @@ class createProduct(APIView):
             with open(target_path, 'wb') as destination:
                 for chunk in picture.chunks():
                     destination.write(chunk)
-            pic = Picture.objects.create(picturePath = f'pictures/{file_name}')
+            pic = Picture.objects.create(picturePath = f'/pictures/{file_name}')
 
             Product.objects.create(title=title,
                                     description=description,
@@ -202,18 +203,10 @@ class getUser(APIView):
     
 class getMessages(APIView):
     def get(self, request):
-        first = request.data.get('firstUser')
-        firstUser = User.objects.get(id=first)
-        second = request.data.get('secondUser')
-        secondUser = User.objects.get(id=second)
+        tmp = request.query_params.get('chat')
         messages = []
         try:
-            chat = Chat.objects.filter(
-                firstUser=firstUser, secondUser=secondUser
-            ).first() or Chat.objects.filter(
-                firstUser=secondUser, secondUser=firstUser
-            ).first()
-
+            chat = Chat.objects.get(id = tmp)
             if chat:
                 messags = Message.objects.filter(chat = chat)
                 for mes in messags:
@@ -225,13 +218,8 @@ class getMessages(APIView):
                             'receiver': mes.receiver.id
                         }
                     )
-                return Response({'messages':messages}, status=status.HTTP_200_OK)
                 
-            chat = Chat.objects.create(
-                    firstUser = firstUser,
-                    secondUser = secondUser
-                )
-            return Response('', status=status.HTTP_200_OK)
+            return Response({'messages':messages}, status=status.HTTP_200_OK)
         except:
             return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
         
@@ -246,14 +234,29 @@ class getMessages(APIView):
             ).first() or Chat.objects.filter(
                 firstUser = receiverUser , secondUser = senderUser
                 ).first()
-        message = request.data.get('message')
+        mesage = request.data.get('message')
+
 
         try:
-            messsage = Message.objects.create(
+            message = Message.objects.create(
                 chat = chat,
-                message = message,
+                message = mesage,
                 sender = senderUser,
                 receiver = receiverUser
+            )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{chat.id}',  # Группа WebSocket для чата
+                {
+                    'type': 'chat_message',  # Тип события
+                    'message': {
+                        'id': message.id,
+                        'text': message.message,
+                        'sender': message.sender.id,
+                        'receiver': message.receiver.id,
+                        'sendingTime': message.sendingTime.isoformat(),
+                    },
+                }
             ) 
             return Response('All good', status=status.HTTP_200_OK)
         except: 
@@ -303,7 +306,7 @@ class changeUserProfile(APIView):
         user = User.objects.get(id = userId)
         try:
             if photo:
-                target_directory = os.path.join(os.getcwd(), '../pictures/users/')
+                target_directory = os.path.join(os.getcwd(), '../public/pictures/users/')
                 os.makedirs(target_directory, exist_ok=True)
 
                 fileName = photo.name
@@ -314,7 +317,7 @@ class changeUserProfile(APIView):
                     for chunk in photo.chunks():
                         destination.write(chunk)
 
-                user.photoPath = f'pictures/{file_name}'
+                user.photoPath = f'/pictures/{file_name}'
             if name:
                 user.name = name
             user.save()
@@ -329,6 +332,33 @@ class changeUserProfile(APIView):
         unique_name = f"{name}_{timestamp}{ext}"
         
         return unique_name
+    
+class getUsersByChat(APIView):
+    def get(self,request):
+        chat_id = request.query_params.get('chat')
+        chat = Chat.objects.get(id = chat_id)
+
+        firstUsr = chat.firstUser
+        firstUser = {
+            'id': firstUsr.id,
+            'name': firstUsr.name,
+            'photo': firstUsr.photoPath
+        }
+
+        secondUsr = chat.secondUser
+        secondUser = {
+            'id': secondUsr.id,
+            'name': secondUsr.name,
+            'photo': secondUsr.photoPath
+        }
+
+        users = {
+        'firstUser': firstUser,
+        'secondUser': secondUser
+        }
+
+        return Response(users, status=status.HTTP_200_OK)
+
         
 
 

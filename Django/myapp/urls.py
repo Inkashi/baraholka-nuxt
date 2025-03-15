@@ -1,10 +1,16 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile
+from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile, getUsersByChat
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
     TokenVerifyView,
 )
+from django.urls import re_path
+from . import consumers
+
+websocket_urlpatterns = [
+    re_path(r'ws/chat/(?P<chat_id>\w+)/$', consumers.ChatConsumer.as_asgi()),
+]
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
@@ -20,5 +26,6 @@ urlpatterns = [
     path('getProductsById/', getProductsById.as_view(), name='getProductsById'),
     path('getMessages/', getMessages.as_view(), name='getMessages'), 
     path('getChats/', getChats.as_view(), name='getChats'),
+    path('getUsersByChat/', getUsersByChat.as_view(), name='getUsersByChat'),
     path('changeUser/', changeUserProfile.as_view(), name='changeUserProfile')
 ]
