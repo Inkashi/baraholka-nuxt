@@ -323,7 +323,7 @@ class changeUserProfile(APIView):
             if name:
                 user.name = name
             user.save()
-            return Response('All good', status=status.HTTP_200_OK)
+            return Response({'photo': user.photoPath}, status=status.HTTP_200_OK)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
         

@@ -65,8 +65,10 @@ const handleImageUpload = async (event: Event) => {
         },
       });
 
+      console.log(response)
+
       if (response.status === 200) {
-        userPhoto.value = response.data.photoPath;
+        userPhoto.value = response.data.photo;
       }
     } catch (error) {
       console.error("Ошибка при загрузке фотографии:", error);

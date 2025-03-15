@@ -71,6 +71,13 @@ class Picture(models.Model):
         db_table = 'pictures'
         managed = True
 
+class Status(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'statuses'
+        managed = True
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
@@ -80,11 +87,11 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     cost = models.FloatField()
     picture = models.ForeignKey(Picture, on_delete=models.CASCADE, related_name='pictures')
+    status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name='statuses')
 
     class Meta:
         db_table = 'products'
         managed = True
-
 
 class Chat(models.Model):
     id = models.AutoField(primary_key=True)
