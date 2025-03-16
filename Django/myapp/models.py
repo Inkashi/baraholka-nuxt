@@ -98,13 +98,13 @@ class FavoriteCollection(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='users')
 
     class Meta:
-        db_table = 'favoriteColletions'
+        db_table = 'favoriteCollections'
         managed = True
 
 class Favorite(models.Model):
     id = models.AutoField(primary_key=True)
-    productId = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
-    favoriteCollection = models.ForeignKey(FavoriteCollection, on_delete=models.CASCADE, related_name='favoriteColletions')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products')
+    favoriteCollection = models.ForeignKey(FavoriteCollection, on_delete=models.CASCADE, related_name='favoriteCollections')
 
     class Meta:
         db_table = 'favorites'

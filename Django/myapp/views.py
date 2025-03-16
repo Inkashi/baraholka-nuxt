@@ -82,11 +82,13 @@ class getProducts(APIView):
         end = request.query_params.get('end')
         
         try:
+            status = Status.objects.get(id=1)
+
             if not userId:
-                tmp = Product.objects.all()[int(start):int(end)]
+                tmp = Product.objects.filter(status = status)[int(start):int(end)]
             else:
                 user = User.objects.get(id = userId)
-                tmp = Product.objects.exclude(seller=user)[int(start):int(end)]
+                tmp = Product.objects.filter(status=status).exclude(seller=user)[int(start):int(end)]
             products = []
 
             for product in tmp:
@@ -426,14 +428,35 @@ class getFavoriteCollectionByUser(APIView):
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
         
 class getFavorites(APIView):
-    def post(self, request):
-        favoriteCollection = request.data.get('favoriteCollection')
+    def get(self, request):
+        tmp = request.query_params.get('favoriteCollection')
+        favoriteCollection = FavoriteCollection.objects.get(id=tmp)
         try:
-            favorits = Favorite.objects.filter(id=favoriteCollection)
+            favorites = Favorite.objects.filter(favoriteCollection=favoriteCollection)
+            products = []
+            for favorite in favorites:
+                product = favorite.product
+                products.append({
+                    'id': product.id,
+                    'title': product.title,
+                    'cost': product.cost,
+                    'picture': product.picture.picturePath,
+                    'description': product.description,
+                    'seller': product.seller.id
+                })
+            return Response(products,status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        tmp = request.data.get('favoriteCollection')
+        favoriteCollection = FavoriteCollection.objects.get(id=tmp)
+        try:
+            favorits = Favorite.objects.filter(favoriteCollection=favoriteCollection)
             favorites = []
             for favorite in favorits:
                 favorites.append(
-                    favorite.productId.id
+                    favorite.product.id
                 )
             return Response(favorites,status=status.HTTP_200_OK)
         except:
@@ -450,17 +473,17 @@ class addFavorite(APIView):
         try:
             favorite, created = Favorite.objects.get_or_create(
                 favoriteCollection=favoriteCollection,
-                productId=product
+                product=product
             )
-            print(created)
-            if not created:
-                Favorite.objects.create(favoriteCollection=favoriteCollection, productId=product)
+            if created:
                 return Response('All good',status=status.HTTP_200_OK)
             else:
                 favorite.delete()
                 return Response('All good',status=status.HTTP_202_ACCEPTED)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+        
         
 
         

@@ -18,7 +18,6 @@ const favoriteCollection = ref([]);
 const favorites = ref([]);
 
 const openModal = (product) => {
-    console.log(favorites.value)
     selectedProduct.value = product;
     showModal.value = true;
 };
@@ -39,14 +38,16 @@ const fetchUserData = async () => {
             });
 
             favoriteCollection.value = response.data;
+            console.log(favoriteCollection.value)
 
             const response2 = await axios.post(`${apiBase}/api/getFavorites/`, {
               favoriteCollection:favoriteCollection.value
             });
 
             favorites.value = response2.data;
-            console.log(favorites.value)
 
+
+            fetchProducts();
         }
         catch (error) {
         console.error("Ошибка при получении данных:", error);
@@ -58,15 +59,15 @@ const fetchUserData = async () => {
 // Функция для получения продуктов
 const fetchProducts = async () => {
     try {
-        const response = await axios.get(`${apiBase}/api/getProducts/`, {
+        console.log(favoriteCollection.value)
+        const response = await axios.get(`${apiBase}/api/getFavorites/`, {
             params: {
-                userId: userId.value,
-                start: 0,
-                end: 10,
+                favoriteCollection: favoriteCollection.value,
             },
         });
 
         products.value = response.data;
+        console.log(products.value)
     } catch (error) {
         console.error("Ошибка при получении продуктов:", error);
     }
@@ -97,7 +98,6 @@ const addToFavorites = async (product) => {
 
 onMounted(() => {
     fetchUserData();
-    fetchProducts();
 });
 </script>
 
@@ -123,7 +123,7 @@ onMounted(() => {
                             :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon" 
                             alt="Favorite"
                         />
-                </button>
+                    </button>
           </div>
       </div>
       <ProductModal v-if="showModal" :showModal="showModal" :selectedProduct="selectedProduct" :favorites="favorites"
