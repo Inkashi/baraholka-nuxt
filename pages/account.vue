@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
+
+import editIcon from '../assets/image/edit.png';
+
 const config = useRuntimeConfig();
 
 const userName = ref("Имя пользователя");
@@ -8,8 +11,21 @@ const userId = ref();
 const userEmail = ref("email@example.com");
 const userPhoto = ref<string | null>(null);
 const isLoading = ref(true);
+const products = ref([]);
+const statuses = ref([]);
+const status = ref([]);
+const productStatuses = ref({});
 const userStore = useAuthStore();
 const apiBase = config.public.apiBase as string;
+
+const fetchStatuses = async () => {
+    try {
+        const response = await axios.get(`${apiBase}/api/getStatuses/`);
+        statuses.value = response.data;
+    } catch (error) {
+        console.error("Ошибка при получении категорий:", error);
+    }
+};
 
 const fetchUserData = async () => {
   try {
@@ -31,6 +47,7 @@ const fetchUserData = async () => {
     userName.value = userData.name || "Неизвестное имя";
     userEmail.value = userData.email || "Неизвестный email";
     userPhoto.value = userData.photoPath || null;
+    fetchProducts();
   } catch (error) {
     console.error("Ошибка при получении данных пользователя:", error);
   } finally {
@@ -65,8 +82,6 @@ const handleImageUpload = async (event: Event) => {
         },
       });
 
-      console.log(response)
-
       if (response.status === 200) {
         userPhoto.value = response.data.photo;
       }
@@ -76,8 +91,45 @@ const handleImageUpload = async (event: Event) => {
   }
 };
 
+const fetchProducts = async () => {
+    try {
+        console.log(userId.value)
+        const response = await axios.get(`${apiBase}/api/getProductsById/`, {
+            params: {
+                userId: userId.value,
+                start: 0,
+                end: 10,
+            },
+        });
+
+        products.value = response.data;
+        products.value.forEach((product) => {
+          productStatuses.value[product.id] = product.status;
+    });
+
+    } catch (error) {
+        console.error("Ошибка при получении продуктов:", error);
+    }
+};
+
+const updateStatus = async (product) => {
+    try {
+        const newStatus = productStatuses.value[product.id];
+
+        await axios.post(`${apiBase}/api/editStatus/`, {
+            product_id: product.id,
+            status_id: newStatus,
+        });
+
+    } catch (error) {
+        console.error("Ошибка при обновлении статуса:", error);
+    }
+};
+
+
 onMounted(() => {
   fetchUserData();
+  fetchStatuses();
 });
 </script>
 
@@ -115,11 +167,68 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  <div class="products-grid">
+          <div v-for="product in products" :key="product.id" class="product-item">
+              <img :src="product.picture.photoPath" alt="Product Image" />
+              <p>{{ product.title }}</p>
+              <p>{{ product.cost }} руб.</p>
+              <div class="form-group">
+                <select id="status" v-model="productStatuses[product.id]" @change="updateStatus(product)" required>
+                    <option v-for="stat in statuses" :value="stat.id">{{ stat.title }}</option>
+                </select>
+              </div>
+              <a class="edit-button" :href="`/editProduct/${product.id }`">
+                <!-- Нужен миддвейр -->
+                        <img 
+                            :src="editIcon" 
+                            alt="Favorite"
+                        />
+              </a>
+          </div>
+      </div>
+  
 </template>
 
 <style lang="scss" scoped>
 @use "~/assets/scss/main.scss" as main;
 @use "sass:color";
+
+.center {
+    text-align: center;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.product-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    position: relative; /* Для позиционирования сердечка */
+}
+
+.product-item img {
+    max-width: 100%;
+    height: auto;
+}
+
+.edit-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    width: 24px; /* Установите фиксированную ширину */
+    height: 24px; /* Установите фиксированную высоту */
+    display: flex; /* Используйте flexbox для центрирования иконки */
+    align-items: center;
+    justify-content: center;
+}
 
 .userInfo {
   width: 80%;

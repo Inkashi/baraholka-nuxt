@@ -107,14 +107,14 @@ class getProducts(APIView):
     
 class getProductsById(APIView):
     def get(self, request):
-        id = request.data.get('id')
-        start = request.data.get('start')
-        end = request.data.get('end')
+        id = request.query_params.get('userId')
+        start = request.query_params.get('start')
+        end = request.query_params.get('end')
+        usr = User.objects.get(id=id)
 
         product_data = []
-        products = Product.objects.filter(seller = id)[int(start):int(end)]
+        products = Product.objects.filter(seller = usr)[int(start):int(end)]
 
-        usr = User.objects.get(id=id)
         user = {
         'id':usr.id,
         'email':usr.email,
@@ -143,11 +143,35 @@ class getProductsById(APIView):
                     'category':category,
                     'cost': product.cost,
                     'picture':picture,
+                    'status':product.status.id
                     })
 
-        
-        
         return JsonResponse(product_data ,safe=False)
+    
+class getProductById(APIView):
+    def get(self, request):
+        try:
+            id = request.query_params.get('product_id')
+            tmp = Product.objects.get(id=id)
+            temp = tmp.picture
+            picture = {
+                'id': temp.id,
+                'picturePath': temp.picturePath
+            }
+
+            product = {
+                'title':tmp.title,
+                'description':tmp.description,
+                'category':tmp.category,
+                'cost':tmp.cost,
+                'picture':picture,
+                'category':tmp.category.id
+            }
+
+            return Response(product, status=status.HTTP_200_OK)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+
 
 class createProduct(APIView):
     def post(self, request):
@@ -192,6 +216,74 @@ class createProduct(APIView):
         unique_name = f"{name}_{timestamp}{ext}"
         
         return unique_name
+    
+class editProduct(APIView):
+    def post(self, request):
+            id = request.data.get('id')
+            title = request.data.get('name')
+            description = request.data.get('description')
+            category = Category.objects.get(id = request.data.get('category'))
+            seller = User.objects.get(id = request.data.get('seller'))
+            cost = request.data.get('cost')
+            picture = request.FILES.get('picture')
+            pic = None
+            
+            
+            try:
+                product = Product.objects.get(id=id)
+                if picture:
+                    target_directory = os.path.join(os.getcwd(), '../public/pictures')
+                    os.makedirs(target_directory, exist_ok=True)
+
+                    fileName = picture.name
+                    file_name = self.generate_unique_filename(fileName)
+
+                    target_path = os.path.join(target_directory, file_name)
+
+                    if product.picture and product.picture.picturePath:
+                        old_file_path = os.path.join(os.getcwd(), '../public/', product.picture.picturePath[1:])
+                        if os.path.exists(old_file_path):
+                            os.remove(old_file_path)
+
+                    with open(target_path, 'wb') as destination:
+                        for chunk in picture.chunks():
+                            destination.write(chunk)
+                    pic = Picture.objects.create(picturePath = f'/pictures/{file_name}')
+                else:
+                    pic = product.picture
+
+                product.title = title
+                product.description = description
+                product.category = category
+                product.cost = cost
+                product.seller = seller
+                product.picture = pic
+                product.status = Status.objects.get(id=1)
+                product.save()
+                return Response('All good', status=status.HTTP_200_OK)
+            except: 
+                return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+    def generate_unique_filename(self, original_name):
+        name, ext = os.path.splitext(original_name)
+        
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_name = f"{name}_{timestamp}{ext}"
+        
+        return unique_name
+    
+class editStatus(APIView):
+    def post(self, request):
+        product_id = request.data.get('product_id')
+        status_id = request.data.get('status_id')
+        try:
+            product = Product.objects.get(id = product_id)
+            stat = Status.objects.get(id=status_id)
+            product.status = stat
+            product.save()
+            return Response('All good', status=status.HTTP_200_OK)
+        except: 
+            return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
         
 class getCategories(APIView):
     def get(self, request):
@@ -480,6 +572,22 @@ class addFavorite(APIView):
             else:
                 favorite.delete()
                 return Response('All good',status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class getStatuses(APIView):
+    def get(self, request):
+        try:
+            tmp = Status.objects.all()
+            statuses = []
+            for stat in tmp:
+                statuses.append(
+                    {
+                        'id':stat.id,
+                        'title':stat.title
+                    }
+                )
+            return Response(statuses,status=status.HTTP_200_OK)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
         
