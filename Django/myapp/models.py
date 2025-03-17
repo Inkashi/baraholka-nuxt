@@ -88,6 +88,7 @@ class Product(models.Model):
     cost = models.FloatField()
     picture = models.ForeignKey(Picture, on_delete=models.CASCADE, related_name='pictures')
     status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name='statuses')
+    createdTime = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'products'

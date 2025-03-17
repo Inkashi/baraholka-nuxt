@@ -591,15 +591,37 @@ class getStatuses(APIView):
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
         
-        
-        
+class getSearched(APIView):
+    def post(self, request):
+        text = request.data.get('text')
+        category = request.data.get('category')
+        cost = request.data.get('cost')#0-по возростанию 1-по убыванию
+        time = request.data.get('time')#0-по возростанию 1-по убыванию
+        products = []
+        try:
+            tmp = Product.objects.all()
+            tmp = tmp.filter(title__icontains=text)
+            if cost:
+                if cost == 0:
+                    tmp = tmp.order_by('cost')
+                else:
+                    tmp = tmp.order_by('-cost')
+            if time:
+                if cost == 0:
+                    tmp = tmp.order_by('createdTime')
+                else:
+                    tmp = tmp.order_by('-cost')
+            
+            for product in tmp:
+                    products.append({
+                        'id': product.id,
+                        'title': product.title,
+                        'cost': product.cost,
+                        'picture': product.picture.picturePath,
+                        'description': product.description,
+                        'seller': product.seller.id
+                    })
 
-        
-        
-
-
-
-
-
-    
-   
+            return JsonResponse(products, safe=False)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
