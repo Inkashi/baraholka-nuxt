@@ -601,15 +601,15 @@ class getSearched(APIView):
         tmp = Product.objects.all()
         tmp = tmp.filter(title__icontains=text)
         if cost:
-            if cost == 0:
+            if int(cost) == 0:
                 tmp = tmp.order_by('cost')
             else:
                 tmp = tmp.order_by('-cost')
         if time:
-            if cost == 0:
+            if int(time) == 0:
                 tmp = tmp.order_by('createdTime')
             else:
-                tmp = tmp.order_by('-cost')
+                tmp = tmp.order_by('-createdTime')
         if category_id:
             category = Category.objects.get(id=category_id)
             tmp = tmp.filter(category = category)
@@ -621,7 +621,8 @@ class getSearched(APIView):
                     'cost': product.cost,
                     'picture': product.picture.picturePath,
                     'description': product.description,
-                    'seller': product.seller.id
+                    'seller': product.seller.id,
+                    'createdTime': product.createdTime
                 })
 
         return JsonResponse(products, safe=False)

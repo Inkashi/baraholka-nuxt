@@ -16,10 +16,10 @@ const showModal = ref(false);
 const selectedProduct = ref(null);
 const favoriteCollection = ref([]);
 const favorites = ref([]);
-const search = ref()
-const cost = ref(0)
-const time = ref(1)
-const category = ref()
+const search = ref('')
+const cost = ref(-1)
+const time = ref(-1)
+const category = ref(null)
 const sort = ref(0)
 
 const openModal = (product) => {
@@ -104,13 +104,13 @@ const getSearch = async () => {
     try {
         const formData = new FormData();
         formData.append('text', search.value);
-        formData.append('category', category.value);
-        if (!sort) {
+        if (category.value) {
+            formData.append('category', category.value);
+        }
+        if (sort.value) {
             formData.append('cost', String(cost.value));
-            formData.append('time', String(''));
         } else {
             formData.append('time', String(time.value));
-            formData.append('cost', String(''));
         }
        
         const response = await axios.post(`${apiBase}/api/getSearched/`, formData);
@@ -160,11 +160,13 @@ onMounted(() => {
                     <option :value=0>По времени</option>
                     <option :value=1>По цене</option>
         </select>
-        <select v-if="sort" id="time" v-model="time" @change="getSearch" required>
+        <select v-if="!sort" id="time" v-model="time" @change="getSearch" required>
+                    <option :value=-1></option>
                     <option :value=0>По возрастнию</option>
                     <option :value=1>По убыванию</option>
         </select>
         <select v-else id="cost" v-model="cost" @change="getSearch" required>
+                    <option :value=-1></option>
                     <option :value=0>По возрастнию</option>
                     <option :value=1>По убыванию</option>
         </select>
