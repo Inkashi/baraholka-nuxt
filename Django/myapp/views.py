@@ -599,7 +599,8 @@ class getSearched(APIView):
         time = request.data.get('time')#0-по возростанию 1-по убыванию
         try:
             products = []
-            tmp = Product.objects.all()
+            stat=Status.objects.get(id=1)
+            tmp = Product.objects.filter(status=stat)
             tmp = tmp.filter(title__icontains=text)
             if cost:
                 if int(cost) == 0:
