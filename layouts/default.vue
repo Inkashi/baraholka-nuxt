@@ -16,11 +16,11 @@
       </div>
       <nav class="gap-4 z-10">
         <div v-if="isAuth" class="flex items-center">
-          <a href="#"
+          <a href="/chats"
             ><Icon name="tabler:message-circle-filled" size="48" color="blue"
           /></a>
           <a
-            href="#"
+            href="/createProduct"
             class="bg-white hover:bg-white-500 text-white font-semibold py-2 px-4 rounded-full flex items-center h-10"
           >
             <i class="fas fa-comment-alt mr-2"></i>
@@ -29,7 +29,7 @@
           <a href="/account"
             ><Icon name="ic:round-account-circle" size="48"
           /></a>
-          <a href="#"><Icon name="mdi:heart" size="48" /></a>
+          <a href="/favorites"><Icon name="mdi:heart" size="48" /></a>
         </div>
         <div v-else>
           <a

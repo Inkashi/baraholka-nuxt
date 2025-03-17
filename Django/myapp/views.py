@@ -85,10 +85,10 @@ class getProducts(APIView):
             status = Status.objects.get(id=1)
 
             if not userId:
-                tmp = Product.objects.filter(status = status)[int(start):int(end)]
+                tmp = Product.objects.filter(status=status)[int(start):int(end)]
             else:
                 user = User.objects.get(id = userId)
-                tmp = Product.objects.filter(status=status).exclude(seller=user)[int(start):int(end)]
+                tmp = Product.objects.filter(status=status)[int(start):int(end)]
             products = []
 
             for product in tmp:
@@ -191,7 +191,7 @@ class createProduct(APIView):
             file_name = self.generate_unique_filename(fileName)
 
             target_path = os.path.join(target_directory, file_name)
-
+            
             with open(target_path, 'wb') as destination:
                 for chunk in picture.chunks():
                     destination.write(chunk)
