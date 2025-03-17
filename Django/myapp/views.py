@@ -597,48 +597,20 @@ class getSearched(APIView):
         category_id = request.data.get('category')
         cost = request.data.get('cost')#0-по возростанию 1-по убыванию
         time = request.data.get('time')#0-по возростанию 1-по убыванию
-        products = []
-        tmp = Product.objects.all()
-        tmp = tmp.filter(title__icontains=text)
-        if cost:
-            if int(cost) == 0:
-                tmp = tmp.order_by('cost')
-            else:
-                tmp = tmp.order_by('-cost')
-        if time:
-            if int(time) == 0:
-                tmp = tmp.order_by('createdTime')
-            else:
-                tmp = tmp.order_by('-createdTime')
-        if category_id:
-            category = Category.objects.get(id=category_id)
-            tmp = tmp.filter(category = category)
-        
-        for product in tmp:
-                products.append({
-                    'id': product.id,
-                    'title': product.title,
-                    'cost': product.cost,
-                    'picture': product.picture.picturePath,
-                    'description': product.description,
-                    'seller': product.seller.id,
-                    'createdTime': product.createdTime
-                })
-
-        return JsonResponse(products, safe=False)
         try:
+            products = []
             tmp = Product.objects.all()
             tmp = tmp.filter(title__icontains=text)
             if cost:
-                if cost == 0:
+                if int(cost) == 0:
                     tmp = tmp.order_by('cost')
                 else:
                     tmp = tmp.order_by('-cost')
             if time:
-                if cost == 0:
+                if int(time) == 0:
                     tmp = tmp.order_by('createdTime')
                 else:
-                    tmp = tmp.order_by('-cost')
+                    tmp = tmp.order_by('-createdTime')
             if category_id:
                 category = Category.objects.get(id=category_id)
                 tmp = tmp.filter(category = category)
@@ -650,9 +622,19 @@ class getSearched(APIView):
                         'cost': product.cost,
                         'picture': product.picture.picturePath,
                         'description': product.description,
-                        'seller': product.seller.id
+                        'seller': product.seller.id,
+                        'createdTime': product.createdTime
                     })
 
             return JsonResponse(products, safe=False)
+        except:
+            return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class deleteProduct(APIView):
+    def delete(self, request, product_id):
+        try:
+            product = Product.objects.get(id = product_id)
+            product.delete()
+            return Response('All good',status=status.HTTP_200_OK)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)

@@ -93,6 +93,26 @@ const editProduct = async () => {
         alert('Произошла ошибка при создании товара.');
     }
 };
+
+const deleteProduct = async () => {
+
+const formData = new FormData();
+formData.append('id', String(product_id));
+
+console.log(product_id)
+
+try {
+    const response = await axios.delete(`${apiBase}/api/deleteProduct/${product_id}/`);
+
+    if (response.status === 200) {
+       navigateTo('/account');
+    }
+} catch (error) {
+    console.error("Ошибка при удалении товара:", error);
+    alert('Ошибка при удалении товара.');
+}
+};
+
 onMounted(() => {
   fetchUserData();
   fetchCategories();
@@ -138,6 +158,7 @@ onMounted(() => {
             </div>
 
             <button type="submit">Изменить товар</button>
+            <button @click="deleteProduct">Удалить товар</button>
         </form>
     </div>
 </template>
