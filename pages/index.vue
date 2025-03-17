@@ -16,6 +16,11 @@ const showModal = ref(false);
 const selectedProduct = ref(null);
 const favoriteCollection = ref([]);
 const favorites = ref([]);
+const search = ref()
+const cost = ref(0)
+const time = ref(1)
+const category = ref()
+const sort = ref(0)
 
 const openModal = (product) => {
     console.log(favorites.value)
@@ -95,10 +100,32 @@ const addToFavorites = async (product) => {
     }
 };
 
+const getSearch = async () => {
+    try {
+        const formData = new FormData();
+        formData.append('text', search.value);
+        formData.append('category', category.value);
+        if (!sort) {
+            formData.append('cost', String(cost.value));
+            formData.append('time', String(''));
+        } else {
+            formData.append('time', String(time.value));
+            formData.append('cost', String(''));
+        }
+       
+        const response = await axios.post(`${apiBase}/api/getSearched/`, formData);
+        products.value = response.data;
+    } catch (error) {
+        console.error("Ошибка:", error);
+    }
+};
+
+
 onMounted(() => {
     fetchUserData();
-    fetchProducts();
+    getSearch();
 });
+
 </script>
 
 <template>
@@ -110,7 +137,7 @@ onMounted(() => {
       <h1>Товары</h1>
 
       <!-- Поиск -->
-      <input type="text"  @input="fetchProducts" placeholder="Поиск..." />
+      <input type="text"  v-model="search" @keyup.enter="getSearch" placeholder="Поиск..." />
 
       <!-- Список продуктов -->
       <div class="products-grid">
@@ -129,7 +156,18 @@ onMounted(() => {
       <ProductModal v-if="showModal" :showModal="showModal" :selectedProduct="selectedProduct" :favorites="favorites"
        :userId="userId" :secondUser="selectedProduct?.seller" @update:favorites="favorites = $event"  :favoriteCollection="favoriteCollection"
         @update:showModal="closeModal" />
-      
+        <select id="sort" v-model="sort" @change="getSearch" required>
+                    <option :value=0>По времени</option>
+                    <option :value=1>По цене</option>
+        </select>
+        <select v-if="sort" id="time" v-model="time" @change="getSearch" required>
+                    <option :value=0>По возрастнию</option>
+                    <option :value=1>По убыванию</option>
+        </select>
+        <select v-else id="cost" v-model="cost" @change="getSearch" required>
+                    <option :value=0>По возрастнию</option>
+                    <option :value=1>По убыванию</option>
+        </select>
   </div>
 </template>
 
