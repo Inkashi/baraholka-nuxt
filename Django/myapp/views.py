@@ -165,7 +165,9 @@ class getProductById(APIView):
                 'category':tmp.category,
                 'cost':tmp.cost,
                 'picture':picture,
-                'category':tmp.category.id
+                'category':tmp.category.id,
+                'seller':tmp.seller.id
+
             }
 
             return Response(product, status=status.HTTP_200_OK)
@@ -410,6 +412,7 @@ class getChats(APIView):
             }
             messge = Message.objects.filter(chat = chat.id).last()
             if messge:
+                sandy = messge.sender.id
                 message = messge.message
             else: 
                 message = ''
@@ -418,7 +421,8 @@ class getChats(APIView):
                     'id':chat.id,
                     'firstUser':firstUser,
                     'secondUser':secondUser,
-                    'lastMessage': message
+                    'lastMessage': message,
+                    'user_id': sandy
                 }
             )
         return Response({'chats':chats}, status=status.HTTP_200_OK)

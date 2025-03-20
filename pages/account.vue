@@ -2,10 +2,12 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-import editIcon from '../assets/image/edit.png';
+import editIcon from "../assets/image/edit.png";
 
 const config = useRuntimeConfig();
 
+const isEdit = ref(false);
+const newName = ref("");
 const userName = ref("Имя пользователя");
 const userId = ref();
 const userEmail = ref("email@example.com");
@@ -14,17 +16,18 @@ const isLoading = ref(true);
 const products = ref([]);
 const statuses = ref([]);
 const status = ref([]);
+
 const productStatuses = ref({});
 const userStore = useAuthStore();
 const apiBase = config.public.apiBase as string;
-
+const buttonText = ref("Изменить имя");
 const fetchStatuses = async () => {
-    try {
-        const response = await axios.get(`${apiBase}/api/getStatuses/`);
-        statuses.value = response.data;
-    } catch (error) {
-        console.error("Ошибка при получении категорий:", error);
-    }
+  try {
+    const response = await axios.get(`${apiBase}/api/getStatuses/`);
+    statuses.value = response.data;
+  } catch (error) {
+    console.error("Ошибка при получении категорий:", error);
+  }
 };
 
 const fetchUserData = async () => {
@@ -72,15 +75,19 @@ const handleImageUpload = async (event: Event) => {
     const file = target.files[0];
     const formData = new FormData();
 
-    formData.append('user_id', userId.value);
-    formData.append('photo', file);
+    formData.append("user_id", userId.value);
+    formData.append("photo", file);
 
     try {
-      const response = await axios.post(`${apiBase}/api/changeUser/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        `${apiBase}/api/changeUser/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (response.status === 200) {
         userPhoto.value = response.data.photo;
@@ -91,41 +98,82 @@ const handleImageUpload = async (event: Event) => {
   }
 };
 
-const fetchProducts = async () => {
+const changeBtn = (event: Event) => {
+  const btn = event.target as HTMLButtonElement;
+  isEdit.value = true;
+  buttonAction.value = changeName;
+  buttonText.value = "Изменить";
+};
+const buttonAction = ref(changeBtn);
+const changeName = async () => {
+  if (newName.value !== "") {
+    const formData = new FormData();
+    formData.append("user_id", userId.value);
+    formData.append("name", newName.value);
     try {
-        console.log(userId.value)
-        const response = await axios.get(`${apiBase}/api/getProductsById/`, {
-            params: {
-                userId: userId.value,
-                start: 0,
-                end: 10,
-            },
-        });
+      const response = await axios.post(
+        `${apiBase}/api/changeUser/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-        products.value = response.data;
-        products.value.forEach((product) => {
-          productStatuses.value[product.id] = product.status;
+      if (response.status === 200) {
+        userName.value = newName.value;
+      }
+    } catch (error) {
+      console.error("Ошибка при изменении имени:", error);
+    }
+  }
+  isEdit.value = false;
+  buttonAction.value = changeBtn;
+  buttonText.value = "Изменить имя";
+};
+
+const fetchProducts = async () => {
+  try {
+    const response = await axios.get(`${apiBase}/api/getProductsById/`, {
+      params: {
+        userId: userId.value,
+        start: 0,
+        end: 10,
+      },
     });
 
-    } catch (error) {
-        console.error("Ошибка при получении продуктов:", error);
-    }
+    products.value = response.data;
+    products.value.forEach((product) => {
+      productStatuses.value[product.id] = product.status;
+    });
+  } catch (error) {
+    console.error("Ошибка при получении продуктов:", error);
+  }
 };
 
 const updateStatus = async (product) => {
-    try {
-        const newStatus = productStatuses.value[product.id];
-
-        await axios.post(`${apiBase}/api/editStatus/`, {
-            product_id: product.id,
-            status_id: newStatus,
-        });
-
-    } catch (error) {
-        console.error("Ошибка при обновлении статуса:", error);
-    }
+  try {
+    const newStatus = productStatuses.value[product.id];
+    await axios.post(`${apiBase}/api/editStatus/`, {
+      product_id: product.id,
+      status_id: newStatus,
+    });
+  } catch (error) {
+    console.error("Ошибка при обновлении статуса:", error);
+  }
 };
 
+const statusClass = (product) => {
+  const status = productStatuses.value[product.id];
+  if (status === 1) {
+    return "actual-text";
+  } else if (status === 2) {
+    return "order-text";
+  } else {
+    return "sell-text";
+  }
+};
 
 onMounted(() => {
   fetchUserData();
@@ -134,112 +182,189 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">
-    <div class="spinner"></div>
-    <p>Загрузка...</p>
-  </div>
-  <div v-else class="userInfo">
-    <div class="flex justify-center items-center">
-      <div class="userImage" @click="() => $refs.fileInput.click()">
-        <img
-          v-if="userPhoto"
-          :src="userPhoto"
-          alt="Фото пользователя"
-          class="profile-image"
-        />
-        <div v-else class="placeholder">Добавить фото</div>
-        <input
-          type="file"
-          accept="image/*"
-          style="display: none"
-          ref="fileInput"
-          @change="handleImageUpload"
-        />
-      </div>
+  <div class="container">
+    <loading v-if="isLoading"></loading>
+    <div v-else class="userInfo">
+      <div class="flex justify-center items-center">
+        <div class="userImage" @click="() => $refs.fileInput.click()">
+          <img
+            v-if="userPhoto"
+            :src="userPhoto"
+            alt="Фото пользователя"
+            class="profile-image"
+          />
+          <div v-else class="placeholder">Добавить фото</div>
+          <input
+            type="file"
+            accept="image/*"
+            style="display: none"
+            ref="fileInput"
+            @change="handleImageUpload"
+          />
+        </div>
 
-      <div class="ml-10">
-        <h2>{{ userName }}</h2>
-        <h2>{{ userEmail }}</h2>
-      </div>
+        <div class="ml-10">
+          <input v-if="isEdit" v-model="newName" :placeholder="userName" />
+          <h2 v-else>{{ userName }}</h2>
+          <h2>{{ userEmail }}</h2>
+          <sub class="help-text">*Фотографию можно изменить, нажав на нее</sub>
+        </div>
 
-      <div>
-        <button class="btn" @click="handleLogout">Выйти</button>
+        <div class="flex btns">
+          <button class="btn" @click="buttonAction">
+            {{ buttonText }}
+          </button>
+          <button class="btn exit" @click="handleLogout">Выйти</button>
+        </div>
+      </div>
+    </div>
+    <div class="products-grid">
+      <div v-for="product in products" :key="product.id" class="product-item">
+        <img :src="product.picture.photoPath" alt="Product Image" />
+        <div class="product-info">
+          <p class="card-title">{{ product.title }}</p>
+          <p class="card-cost">{{ product.cost }} руб.</p>
+          <select
+            id="status"
+            :class="statusClass(product)"
+            v-model="productStatuses[product.id]"
+            @change="updateStatus(product)"
+            required
+          >
+            <option v-for="stat in statuses" :value="stat.id">
+              {{ stat.title }}
+            </option>
+          </select>
+          <a class="edit-button" :href="`/editProduct/${product.id}`">
+            <img :src="editIcon" alt="Favorite" />
+          </a>
+        </div>
       </div>
     </div>
   </div>
-  <div class="products-grid">
-          <div v-for="product in products" :key="product.id" class="product-item">
-              <img :src="product.picture.photoPath" alt="Product Image" />
-              <p>{{ product.title }}</p>
-              <p>{{ product.cost }} руб.</p>
-              <div class="form-group">
-                <select id="status" v-model="productStatuses[product.id]" @change="updateStatus(product)" required>
-                    <option v-for="stat in statuses" :value="stat.id">{{ stat.title }}</option>
-                </select>
-              </div>
-              <a class="edit-button" :href="`/editProduct/${product.id }`">
-                <!-- Нужен миддвейр -->
-                        <img 
-                            :src="editIcon" 
-                            alt="Favorite"
-                        />
-              </a>
-          </div>
-      </div>
-  
 </template>
 
 <style lang="scss" scoped>
 @use "~/assets/scss/main.scss" as main;
 @use "sass:color";
 
-.center {
-    text-align: center;
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
 }
 
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
+.help-text {
+  opacity: 0.5;
+}
+
+.actual-text {
+  color: main.$primary-color;
+}
+
+.order-text {
+  color: brown;
+}
+
+.sell-text {
+  color: red;
 }
 
 .product-item {
-    border: 1px solid #ccc;
+  position: relative;
+  border-radius: 5px;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  img {
+    width: 100%;
+    height: 200px;
+    border-radius: 5px 5px 0 0;
+    object-fit: cover;
+
+    @media (max-width: 768px) {
+      height: 150px;
+    }
+  }
+
+  .product-info {
+    background-color: rgba(white, 0.6);
+    border-radius: 0 0 5px 5px;
+    text-align: left;
     padding: 10px;
-    text-align: center;
-    position: relative; /* Для позиционирования сердечка */
-}
 
-.product-item img {
-    max-width: 100%;
-    height: auto;
-}
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: main.$primary-color;
+      margin-bottom: 1px;
 
-.edit-button {
+      @media (max-width: 768px) {
+        font-size: 14px;
+      }
+    }
+
+    .card-cost {
+      font-size: 18px;
+      color: main.$second-color;
+      letter-spacing: 1px;
+      font-weight: bold;
+
+      @media (max-width: 768px) {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .edit-button {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: transparent;
+    top: 10px;
+    right: 10px;
+    background: transparent;
     border: none;
     cursor: pointer;
-    width: 24px; /* Установите фиксированную ширину */
-    height: 24px; /* Установите фиксированную высоту */
-    display: flex; /* Используйте flexbox для центрирования иконки */
-    align-items: center;
-    justify-content: center;
+    width: 30px;
+    height: 30px;
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  select {
+    border-radius: 15px;
+    border: 2px solid main.$second-color;
+    background-color: main.$window-color;
+    width: 100%;
+    font-weight: bold;
+
+    &:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    option {
+      font-weight: bold;
+      color: black !important;
+    }
+  }
+}
+
+.center {
+  text-align: center;
 }
 
 .userInfo {
-  width: 80%;
-  background-color: color.scale(
-    main.$window-color,
-    $lightness: +15%,
-    $alpha: -10%
-  );
+  width: 100%;
   border-radius: 5px;
-  margin-top: 10%;
-  margin-left: 10%;
   height: max-content;
   position: relative;
   display: flex;
@@ -249,7 +374,7 @@ onMounted(() => {
 }
 
 .userImage {
-  width: 13vw;
+  width: 260px;
   height: 28vh;
   border-radius: 5%;
   overflow: hidden;
@@ -271,60 +396,36 @@ onMounted(() => {
   color: #666;
 }
 
-.btn {
+.btns {
   position: absolute;
+  width: 200px;
   right: 2%;
   top: 5%;
-  width: 10vw;
+
+  * {
+    margin-right: 1%;
+  }
+}
+
+.exit {
+  background-color: rgba(255, 0, 0, 0.651) !important;
+  &:hover {
+    background-color: rgb(255, 0, 0);
+  }
+}
+
+.btn {
+  width: max-content;
   height: 4vh;
-  background-color: rgba(255, 0, 0, 0.651);
+  background-color: main.$second-color;
   transition: all 1s;
 
   &:hover {
-    background-color: rgb(255, 0, 0);
     transform: scale(0.95);
   }
 }
 
 h2 {
   font-size: 24px;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  background-color: transparent;
-  top: 0;
-  left: 0;
-  z-index: 10;
-
-  .spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-
-  p {
-    margin-left: 10px;
-    font-size: 18px;
-    color: #333;
-    font-weight: bold;
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 </style>

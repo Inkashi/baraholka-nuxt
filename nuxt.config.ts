@@ -32,15 +32,25 @@ export default defineNuxtConfig({
     "pages:extend"(pages) {
       function setMiddleware(pages: NuxtPage[]) {
         for (const page of pages) {
+          // Добавляем глобальный middleware "auth" для всех страниц
           if (true) {
             page.meta ||= {};
             page.meta.middleware = ["auth"];
           }
+
+          // Рекурсивно обрабатываем дочерние страницы
           if (page.children) {
             setMiddleware(page.children);
           }
+
+          // Добавляем локальный middleware "edit" для конкретной страницы
+          if (page.name === "editProduct-product_id") {
+            page.meta.middleware = ["edit"];
+          }
         }
       }
+
+      // Запускаем функцию для всех страниц
       setMiddleware(pages);
     },
   },

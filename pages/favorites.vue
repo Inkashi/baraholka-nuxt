@@ -2,10 +2,10 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import ProductModal from '../components/ProductModal.vue';
+import ProductModal from "../components/ProductModal.vue";
 
-import notFavoriteIcon from '../assets/image/notFavorite.png';
-import favoriteIcon from '../assets/image/favorite.png';
+import notFavoriteIcon from "../assets/image/notFavorite.png";
+import favoriteIcon from "../assets/image/favorite.png";
 
 const config = useRuntimeConfig();
 const products = ref([]);
@@ -18,167 +18,225 @@ const favoriteCollection = ref([]);
 const favorites = ref([]);
 
 const openModal = (product) => {
-    selectedProduct.value = product;
-    showModal.value = true;
+  selectedProduct.value = product;
+  showModal.value = true;
 };
 
 const closeModal = () => {
-    showModal.value = false;
+  showModal.value = false;
 };
 
 const fetchUserData = async () => {
-        try {
-            const token = useCookie<string | null>("auth_token").value;
-            const decodedToken: any = jwtDecode(token!);
+  try {
+    const token = useCookie<string | null>("auth_token").value;
+    const decodedToken: any = jwtDecode(token!);
 
-            userId.value = decodedToken.user_id || null;
+    userId.value = decodedToken.user_id || null;
 
-            const response = await axios.post(`${apiBase}/api/getFavoriteCollection/`, {
-              userId:userId.value
-            });
+    const response = await axios.post(`${apiBase}/api/getFavoriteCollection/`, {
+      userId: userId.value,
+    });
 
-            favoriteCollection.value = response.data;
-            console.log(favoriteCollection.value)
+    favoriteCollection.value = response.data;
+    console.log(favoriteCollection.value);
 
-            const response2 = await axios.post(`${apiBase}/api/getFavorites/`, {
-              favoriteCollection:favoriteCollection.value
-            });
+    const response2 = await axios.post(`${apiBase}/api/getFavorites/`, {
+      favoriteCollection: favoriteCollection.value,
+    });
 
-            favorites.value = response2.data;
+    favorites.value = response2.data;
 
-
-            fetchProducts();
-        }
-        catch (error) {
-        console.error("Ошибка при получении данных:", error);
-        } finally {
-        isLoading.value = false;
-        }
-      };
+    fetchProducts();
+  } catch (error) {
+    console.error("Ошибка при получении данных:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 // Функция для получения продуктов
 const fetchProducts = async () => {
-    try {
-        console.log(favoriteCollection.value)
-        const response = await axios.get(`${apiBase}/api/getFavorites/`, {
-            params: {
-                favoriteCollection: favoriteCollection.value,
-            },
-        });
+  try {
+    console.log(favoriteCollection.value);
+    const response = await axios.get(`${apiBase}/api/getFavorites/`, {
+      params: {
+        favoriteCollection: favoriteCollection.value,
+      },
+    });
 
-        products.value = response.data;
-        console.log(products.value)
-    } catch (error) {
-        console.error("Ошибка при получении продуктов:", error);
-    }
+    products.value = response.data;
+    console.log(products.value);
+  } catch (error) {
+    console.error("Ошибка при получении продуктов:", error);
+  }
 };
 
 // Проверка, добавлен ли продукт в избранное
 const isFavorite = (product) => {
-    return favorites.value.includes(product.id);
+  return favorites.value.includes(product.id);
 };
 
 // Добавление продукта в избранное
 const addToFavorites = async (product) => {
-    try {
-        const response = await axios.post(`${apiBase}/api/addFavorite/`, {
-            favoriteCollection: favoriteCollection.value,
-            productId: product.id,
-        });
+  try {
+    const response = await axios.post(`${apiBase}/api/addFavorite/`, {
+      favoriteCollection: favoriteCollection.value,
+      productId: product.id,
+    });
 
-        if (response.status === 200) {
-            favorites.value.push(product.id); // Добавляем ID продукта в массив favorites
-        } else if (response.status === 202) {
-            favorites.value = favorites.value.filter((id) => id !== product.id)
-        }
-    } catch (error) {
-        console.error("Ошибка при добавлении в избранное:", error);
+    if (response.status === 200) {
+      favorites.value.push(product.id); // Добавляем ID продукта в массив favorites
+    } else if (response.status === 202) {
+      favorites.value = favorites.value.filter((id) => id !== product.id);
     }
+  } catch (error) {
+    console.error("Ошибка при добавлении в избранное:", error);
+  }
 };
 
 onMounted(() => {
-    fetchUserData();
+  fetchUserData();
 });
 </script>
 
 <template>
-  <div v-if="isLoading" class="loading">
-        <div class="spinner"></div>
-        <p>Загрузка...</p>
-    </div>
-  <div v-else class="center">
-      <h1>Товары</h1>
+  <div class="container">
+    <loading v-if="isLoading"></loading>
+    <div v-else class="center">
+      <h1 class="title">Отложенные</h1>
 
-      <!-- Поиск -->
-      <input type="text"  @input="fetchProducts" placeholder="Поиск..." />
-
-      <!-- Список продуктов -->
       <div class="products-grid">
-          <div v-for="product in products" :key="product.id" class="product-item" @click="openModal(product)">
-              <img :src="product.picture" alt="Product Image" />
-              <p>{{ product.title }}</p>
-              <p>{{ product.cost }} руб.</p>
-              <button class="favorite-button" @click.stop="addToFavorites(product)">
-                        <img 
-                            :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon" 
-                            alt="Favorite"
-                        />
-                    </button>
+        <div
+          v-for="product in products"
+          :key="product.id"
+          class="product-item"
+          @click="openModal(product)"
+        >
+          <img :src="product.picture" alt="Product Image" />
+          <div class="product-info">
+            <p>{{ product.title }}</p>
+            <p>{{ product.cost }} руб.</p>
           </div>
+          <button class="favorite-button" @click.stop="addToFavorites(product)">
+            <img
+              :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon"
+              alt="Favorite"
+            />
+          </button>
+        </div>
       </div>
-      <ProductModal v-if="showModal" :showModal="showModal" :selectedProduct="selectedProduct" :favorites="favorites"
-       :userId="userId" :secondUser="selectedProduct?.seller" @update:favorites="favorites = $event"  :favoriteCollection="favoriteCollection"
-        @update:showModal="closeModal" />
-      
+      <ProductModal
+        v-if="showModal"
+        :showModal="showModal"
+        :selectedProduct="selectedProduct"
+        :favorites="favorites"
+        :userId="userId"
+        :secondUser="selectedProduct?.seller"
+        @update:favorites="favorites = $event"
+        :favoriteCollection="favoriteCollection"
+        @update:showModal="closeModal"
+      />
+    </div>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "~/assets/scss/main.scss" as main;
+
 .center {
-    text-align: center;
+  text-align: center;
 }
 
 .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: main.$primary-color;
 }
 
 .product-item {
-    border: 1px solid #ccc;
+  position: relative;
+  border-radius: 5px;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  img {
+    width: 100%;
+    height: 280px;
+    border-radius: 5px 5px 0 0;
+    object-fit: cover;
+
+    @media (max-width: 768px) {
+      height: 150px; /* Уменьшаем высоту изображений */
+    }
+  }
+
+  .product-info {
+    background-color: rgba(white, 0.6);
+    border-radius: 0 0 5px 5px;
+    text-align: left;
     padding: 10px;
-    text-align: center;
-    position: relative; /* Для позиционирования сердечка */
-}
 
-.product-item img {
-    max-width: 100%;
-    height: auto;
-}
+    .card-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: main.$primary-color;
+      margin-bottom: 1px;
 
-.favorite-button {
+      @media (max-width: 768px) {
+        font-size: 14px; /* Уменьшаем размер текста */
+      }
+    }
+
+    .card-cost {
+      font-size: 18px;
+      color: main.$second-color;
+      letter-spacing: 1px;
+      font-weight: bold;
+
+      @media (max-width: 768px) {
+        font-size: 14px; /* Уменьшаем размер текста */
+      }
+    }
+  }
+
+  .favorite-button {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: transparent;
+    top: 10px;
+    right: 10px;
+    background: transparent;
     border: none;
     cursor: pointer;
-    width: 24px; /* Установите фиксированную ширину */
-    height: 24px; /* Установите фиксированную высоту */
-    display: flex; /* Используйте flexbox для центрирования иконки */
-    align-items: center;
-    justify-content: center;
+    width: 30px;
+    height: 30px;
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+  }
 }
 
 .fa-heart {
-    width: 20px;
-    height: 20px;
-    font-size: 20px; /* Размер иконки */
-    color: red; /* Цвет иконки */
+  width: 20px;
+  height: 20px;
+  font-size: 20px; /* Размер иконки */
+  color: red; /* Цвет иконки */
 }
 
 .fa-solid {
-    font-weight: bold;
+  font-weight: bold;
 }
 </style>

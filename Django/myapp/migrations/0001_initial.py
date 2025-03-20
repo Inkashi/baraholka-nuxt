@@ -5,6 +5,23 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def add_default_statuses(apps, schema_editor):
+    Status = apps.get_model('myapp', 'Status')
+    Status.objects.create(title='Актуально')
+    Status.objects.create(title='Забранировано')
+    Status.objects.create(title='Продано')
+
+
+def add_default_categories(apps, schema_editor):
+    Categories = apps.get_model('myapp', 'Category')
+    Categories.objects.create(title='Одежда')
+    Categories.objects.create(title='Услуги')
+    Categories.objects.create(title='Электроника')
+    Categories.objects.create(title='Работа')
+    Categories.objects.create(title='Разное')
+   
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -131,4 +148,6 @@ class Migration(migrations.Migration):
                 'managed': True,
             },
         ),
+        migrations.RunPython(add_default_statuses),
+        migrations.RunPython(add_default_categories),
     ]
