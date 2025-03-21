@@ -78,7 +78,7 @@ const isFavorite = () => {
       <div class="flex w-full">
         <div class="product-image-container">
           <img
-            :src="selectedProduct.picture"
+            :src="'/api/pictures' + selectedProduct.picture"
             alt="Product Image"
             class="product-image"
           />

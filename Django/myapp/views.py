@@ -186,7 +186,7 @@ class createProduct(APIView):
         pic = None
 
         try:
-            target_directory = os.path.join(os.getcwd(), '../public/pictures')
+            target_directory = os.path.join(os.getcwd(), '../.output/pictures/products')
             os.makedirs(target_directory, exist_ok=True)
 
             fileName = picture.name
@@ -197,7 +197,7 @@ class createProduct(APIView):
             with open(target_path, 'wb') as destination:
                 for chunk in picture.chunks():
                     destination.write(chunk)
-            pic = Picture.objects.create(picturePath = f'/pictures/{file_name}')
+            pic = Picture.objects.create(picturePath = f'/products/{file_name}')
 
             Product.objects.create(title=title,
                                     description=description,
@@ -234,7 +234,7 @@ class editProduct(APIView):
             try:
                 product = Product.objects.get(id=id)
                 if picture:
-                    target_directory = os.path.join(os.getcwd(), '../public/pictures')
+                    target_directory = os.path.join(os.getcwd(), '../.output/pictures/products')
                     os.makedirs(target_directory, exist_ok=True)
 
                     fileName = picture.name
@@ -243,14 +243,14 @@ class editProduct(APIView):
                     target_path = os.path.join(target_directory, file_name)
 
                     if product.picture and product.picture.picturePath:
-                        old_file_path = os.path.join(os.getcwd(), '../public/', product.picture.picturePath[1:])
+                        old_file_path = os.path.join(os.getcwd(), '../.output/pictures', product.picture.picturePath[1:])
                         if os.path.exists(old_file_path):
                             os.remove(old_file_path)
 
                     with open(target_path, 'wb') as destination:
                         for chunk in picture.chunks():
                             destination.write(chunk)
-                    pic = Picture.objects.create(picturePath = f'/pictures/{file_name}')
+                    pic = Picture.objects.create(picturePath = f'/products/{file_name}')
                 else:
                     pic = product.picture
 
@@ -436,7 +436,7 @@ class changeUserProfile(APIView):
         user = User.objects.get(id = userId)
         try:
             if photo:
-                target_directory = os.path.join(os.getcwd(), '../public/pictures/users/')
+                target_directory = os.path.join(os.getcwd(), '../.output/pictures/users/')
                 os.makedirs(target_directory, exist_ok=True)
 
                 fileName = photo.name

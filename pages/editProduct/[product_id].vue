@@ -141,9 +141,10 @@ onMounted(() => {
           <div class="image-alt" @click="triggerFileInput">
             <img
               v-if="picturePreview"
-              :src="picturePreview"
+              :src="picturePreview?.includes('blob') ? picturePreview : '/api/pictures' + picturePreview"
               alt="Превью товара"
             />
+            
             <span v-else>Загрузите <br />фото <br />товара</span>
           </div>
           <input

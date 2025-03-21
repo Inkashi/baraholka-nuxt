@@ -112,7 +112,7 @@ onMounted(() => {
           class="product-item"
           @click="openModal(product)"
         >
-          <img :src="product.picture" alt="Product Image" />
+          <img :src="'/api/pictures' + product.picture" alt="Product Image" />
           <div class="product-info">
             <p>{{ product.title }}</p>
             <p>{{ product.cost }} руб.</p>

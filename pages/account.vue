@@ -189,7 +189,7 @@ onMounted(() => {
         <div class="userImage" @click="() => $refs.fileInput.click()">
           <img
             v-if="userPhoto"
-            :src="userPhoto"
+            :src="'/api' + userPhoto"
             alt="Фото пользователя"
             class="profile-image"
           />
@@ -220,7 +220,7 @@ onMounted(() => {
     </div>
     <div class="products-grid">
       <div v-for="product in products" :key="product.id" class="product-item">
-        <img :src="product.picture.photoPath" alt="Product Image" />
+        <img :src="'/api/pictures' + product.picture.photoPath" alt="Product Image" />
         <div class="product-info">
           <p class="card-title">{{ product.title }}</p>
           <p class="card-cost">{{ product.cost }} руб.</p>
