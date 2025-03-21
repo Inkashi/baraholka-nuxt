@@ -58,7 +58,7 @@ const submitForm = async () => {
       formData
     );
     console.log(response.data);
-    alert(response.data || "Вы успешно зарегистрированы!");
+    navigateTo('/auth/login');
   } catch (error: any) {
     if (error.response) {
       console.error(error.response.data);

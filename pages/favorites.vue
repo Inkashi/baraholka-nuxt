@@ -167,6 +167,7 @@ onMounted(() => {
 .product-item {
   position: relative;
   border-radius: 5px;
+  border: 2px solid rgba(83, 76, 76, 0.185);
 
   &:hover {
     transform: scale(1.02);

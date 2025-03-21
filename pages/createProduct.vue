@@ -91,7 +91,7 @@ const createProduct = async () => {
     );
 
     if (response.status === 200) {
-      alert("Товар успешно создан!");
+      navigateTo('/account');
       title.value = "";
       description.value = "";
       category.value = null;
