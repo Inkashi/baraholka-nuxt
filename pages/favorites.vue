@@ -18,8 +18,11 @@ const favoriteCollection = ref([]);
 const favorites = ref([]);
 
 const openModal = (product) => {
-  selectedProduct.value = product;
-  showModal.value = true;
+  if (product.status == 1) {
+    selectedProduct.value = product;
+    showModal.value = true;
+  }
+ 
 };
 
 const closeModal = () => {
@@ -110,6 +113,7 @@ onMounted(() => {
           v-for="product in products"
           :key="product.id"
           class="product-item"
+          :class="{ 'inactive': product.status != 1 }"
           @click="openModal(product)"
         >
           <img :src="'/api/pictures' + product.picture" alt="Product Image" />
@@ -117,12 +121,15 @@ onMounted(() => {
             <p>{{ product.title }}</p>
             <p>{{ product.cost }} руб.</p>
           </div>
-          <button class="favorite-button" @click.stop="addToFavorites(product)">
+          <button v-if="userId" class="favorite-button" @click.stop="addToFavorites(product)">
             <img
               :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon"
               alt="Favorite"
             />
           </button>
+          <div v-if="product.status != 1" class="status-overlay">
+          {{ product.statusText }}
+          </div>
         </div>
       </div>
       <ProductModal
@@ -214,6 +221,7 @@ onMounted(() => {
   }
 
   .favorite-button {
+    z-index: 2;
     position: absolute;
     top: 10px;
     right: 10px;
@@ -228,6 +236,46 @@ onMounted(() => {
       height: 100%;
     }
   }
+}
+
+.status-overlay {
+  position: absolute;
+  top: 1%; 
+  left: 3%; 
+  padding: 10px; 
+  color: white; 
+  font-size: 18px; 
+  font-weight: bold; 
+  z-index: 2; 
+  text-align: center;
+  pointer-events: none; 
+}
+
+.status-overlay::before {
+  content: '';
+  position: absolute;
+  top: 7%; 
+  left: 0; 
+  width: 100%; 
+  height: 80%; 
+  background-color: rgba(0, 0, 0, 0.562); 
+  border-radius: 5px; 
+  z-index: -1; 
+}
+
+.product-item.inactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(128, 128, 128, 0.5); 
+  z-index: 1; 
+}
+
+.product-item.inactive:hover {
+  transform: scale(1);
 }
 
 .fa-heart {

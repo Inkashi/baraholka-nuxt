@@ -260,7 +260,7 @@ class editProduct(APIView):
                 product.cost = cost
                 product.seller = seller
                 product.picture = pic
-                product.status = Status.objects.get(id=1)
+                product.status = product.status
                 product.save()
                 return Response('All good', status=status.HTTP_200_OK)
             except: 
@@ -538,7 +538,9 @@ class getFavorites(APIView):
                     'cost': product.cost,
                     'picture': product.picture.picturePath,
                     'description': product.description,
-                    'seller': product.seller.id
+                    'seller': product.seller.id,
+                    'status': product.status.id,
+                    'statusText': product.status.title
                 })
             return Response(products,status=status.HTTP_200_OK)
         except:

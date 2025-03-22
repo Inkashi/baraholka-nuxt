@@ -94,7 +94,7 @@ const isFavorite = () => {
       </div>
       <!-- Кнопки действий -->
       <div class="action-buttons">
-        <button class="favorite-button" @click.stop="addToFavorites">
+        <button v-if="userId" class="favorite-button" @click.stop="addToFavorites">
           <img
             :src="isFavorite() ? favoriteIcon : notFavoriteIcon"
             alt="Favorite"

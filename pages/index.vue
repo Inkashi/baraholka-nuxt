@@ -236,7 +236,7 @@ onMounted(() => {
             <p class="card-title">{{ product.title }}</p>
             <p class="card-cost">{{ product.cost }} ₽</p>
           </div>
-          <button class="favorite-button" @click.stop="addToFavorites(product)">
+          <button v-if="userId" class="favorite-button" @click.stop="addToFavorites(product)">
             <img
               :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon"
               alt="Favorite"
