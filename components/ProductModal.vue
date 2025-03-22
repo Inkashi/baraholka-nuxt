@@ -101,7 +101,7 @@ const isFavorite = () => {
             class="favorite-icon"
           />
         </button>
-        <button class="contact-button" @click="getChat">
+        <button v-if="userId && userId!=secondUser" class="contact-button" @click="getChat">
           Связаться с продавцом
         </button>
       </div>
