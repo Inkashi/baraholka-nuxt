@@ -8,7 +8,7 @@ from django.db import migrations, models
 def add_default_statuses(apps, schema_editor):
     Status = apps.get_model('myapp', 'Status')
     Status.objects.create(title='Актуально')
-    Status.objects.create(title='Забранировано')
+    Status.objects.create(title='Забронировано')
     Status.objects.create(title='Продано')
 
 
