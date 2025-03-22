@@ -215,7 +215,7 @@ class createProduct(APIView):
         name, ext = os.path.splitext(original_name)
         
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_name = f"{name}_{timestamp}{ext}"
+        unique_name = f"{timestamp}{ext}"
         
         return unique_name
     
@@ -270,7 +270,7 @@ class editProduct(APIView):
         name, ext = os.path.splitext(original_name)
         
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_name = f"{name}_{timestamp}{ext}"
+        unique_name = f"{timestamp}{ext}"
         
         return unique_name
     
@@ -459,7 +459,7 @@ class changeUserProfile(APIView):
         name, ext = os.path.splitext(original_name)
         
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        unique_name = f"{name}_{timestamp}{ext}"
+        unique_name = f"{timestamp}{ext}"
         
         return unique_name
     
