@@ -135,7 +135,7 @@ onUnmounted(() => {
             <div class="chat-info">
               <div class="user-info">
                 <img
-                  :src="getUserPhoto(chat)"
+                  :src="'/api' + getUserPhoto(chat)"
                   alt="User Photo"
                   class="user-photo"
                 />

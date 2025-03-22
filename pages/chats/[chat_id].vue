@@ -125,7 +125,7 @@ const sendMessage = async () => {
 
     <div v-else class="chat-container">
       <div class="flex">
-        <img :src="photo_path" alt="User Photo" class="user-photo" />
+        <img :src="'/api' + photo_path" alt="User Photo" class="user-photo" />
         <h1 class="companion">{{ title }}</h1>
       </div>
       <div ref="messagesList" class="messages-list">
