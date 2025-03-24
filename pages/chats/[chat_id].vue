@@ -13,6 +13,7 @@ const user = ref();
 const otherUser = ref();
 let socket: WebSocket;
 const photo_path = ref();
+let observer: IntersectionObserver | null = null;
 
 let title = "";
 const newMessage = ref("");
@@ -25,6 +26,55 @@ const scrollToBottom = () => {
       messagesList.value.scrollTop = messagesList.value.scrollHeight;
     }
   });
+};
+
+// Наблюдение за сообщениями
+const observeMessages = () => {
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(async (entry) => {
+        if (entry.isIntersecting) {
+          const messageId = entry.target.dataset.messageId;
+          const message = messages.value.find((msg) => msg.id == messageId);
+
+          // Помечаем как прочитанное только сообщения собеседника
+          if (message && !message.isRead && message.sender !== userId.value) {
+            await markAsRead(messageId);
+
+            // Прекращаем наблюдение за этим элементом
+            observer?.unobserve(entry.target);
+          }
+        }
+      });
+    },
+    { threshold: 0.5 } // Сообщение считается просмотренным, если видно хотя бы 50%
+  );
+
+  // Наблюдаем за всеми существующими сообщениями
+  nextTick(() => {
+    document.querySelectorAll(".message-item").forEach((el) => {
+      observer?.observe(el);
+    });
+  });
+};
+
+// Наблюдение за новыми сообщениями
+const observeNewMessages = () => {
+  if (!observer) return;
+
+  // Наблюдаем за последним добавленным сообщением
+  const lastMessage = document.querySelector(".message-item:last-child");
+  if (lastMessage) {
+    observer.observe(lastMessage);
+  }
+};
+
+const markAsRead = async (messageId: number) => {
+  try {
+    await axios.post(`${apiBase}/api/readMessage/`, { id: messageId, chat_id: chat_id });
+  } catch (error) {
+    console.error("Ошибка при отметке сообщения как прочитанное:", error);
+  }
 };
 
 const fetchUserData = async () => {
@@ -66,6 +116,7 @@ const fetchUserData = async () => {
   } finally {
     isLoading.value = false;
     scrollToBottom();
+    observeMessages();
   }
 };
 
@@ -73,8 +124,19 @@ onMounted(() => {
   socket = new WebSocket(`ws://localhost:8000/ws/chat/${chat_id}/`);
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    messages.value.push(data.message);
-    scrollToBottom();
+    console.log(data)
+    if (data.message) {
+      messages.value.push(data.message);
+      if (data.message.sender != userId) {
+        nextTick(() => observeNewMessages());
+      }
+      scrollToBottom();
+    } else if (data.message_id && data.is_read !== undefined) {
+      const message = messages.value.find((msg) => msg.id == data.message_id);
+      if (message) {
+        message.isRead = data.is_read;
+      }
+    }
   };
 
   socket.onerror = (error) => {
@@ -84,7 +146,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  // Закрываем соединение при размонтировании
   socket.close();
 });
 
@@ -129,11 +190,13 @@ const sendMessage = async () => {
         <h1 class="companion">{{ title }}</h1>
       </div>
       <div ref="messagesList" class="messages-list">
-        <div v-for="message in messages" :key="message.id" class="message-item">
-          <div :class="['message', { 'is-sender': message.sender === userId }]">
+        <div v-for="message in messages" :key="message.id" :data-message-id="message.id" class="message-item">
+          <div :class="['message', { 'is-sender': message.sender === userId}]">
             <div class="message-content">
               <p>{{ message.message }}</p>
               <span class="time">{{ formatDate(message.sendingTime) }}</span>
+              <img class = 'read' v-if="message.isRead && message.sender == userId" src="/assets/image/read.png" alt="">
+              <img class = 'read' v-if="!message.isRead && message.sender == userId" src="/assets/image/notRead.png" alt="">
             </div>
           </div>
         </div>
@@ -208,6 +271,7 @@ const sendMessage = async () => {
   flex-direction: column;
   min-width: 180px;
   font-weight: 600;
+  position: relative;
 }
 
 .is-sender {
@@ -246,5 +310,14 @@ const sendMessage = async () => {
 
 .btn {
   height: 100%;
+}
+
+.read {
+  position: absolute;
+  bottom: 0; 
+  left: 0; 
+  width: 20px; 
+  height: 20px; 
+  pointer-events: none; 
 }
 </style>

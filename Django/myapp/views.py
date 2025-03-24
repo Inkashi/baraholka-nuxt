@@ -340,10 +340,12 @@ class getMessages(APIView):
                 for mes in messags:
                     messages.append(
                         {
+                            'id': mes.id,
                             'message': mes.message,
                             'sendingTime': mes.sendingTime,
                             'sender': mes.sender.id,
-                            'receiver': mes.receiver.id
+                            'receiver': mes.receiver.id,
+                            'isRead': mes.isRead
                         }
                     )
                 
@@ -645,3 +647,25 @@ class deleteProduct(APIView):
             return Response('All good',status=status.HTTP_200_OK)
         except:
             return Response('Something wrong', status=status.HTTP_400_BAD_REQUEST)
+        
+class readMessage(APIView):
+    def post(self, request):
+        try:
+            id = request.data.get('id')
+            chat_id = request.data.get('chat_id')
+            message = Message.objects.get(id=id)
+            message.isRead = True
+            message.save()
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'chat_{chat_id}',  
+                {
+                    'type': 'update_message_status',  
+                    'message_id': id,
+                    'is_read': True
+                }
+            ) 
+            return Response(status=status.HTTP_200_OK)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+

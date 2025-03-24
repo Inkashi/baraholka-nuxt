@@ -129,6 +129,7 @@ class Message(models.Model):
     sendingTime = models.DateTimeField(auto_now_add=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    isRead = models.BooleanField(default=False)
 
     class Meta:
         db_table = 'messages'
