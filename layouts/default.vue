@@ -30,7 +30,7 @@
                   color="blue"
               />
               <Icon v-if="hasUnreadMessages"
-                  name="tabler:message-circle-exclamation "
+                  name="tabler:message-circle-exclamation"
                   size="48"
                   color="blue"
               /></a>

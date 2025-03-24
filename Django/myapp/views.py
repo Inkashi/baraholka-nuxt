@@ -651,7 +651,7 @@ class deleteProduct(APIView):
 class readMessage(APIView):
     def post(self, request):
         try:
-            id = request.params.get('id')
+            id = request.data.get('id')
             chat_id = request.data.get('chat_id')
             message = Message.objects.get(id=id)
             message.isRead = True
