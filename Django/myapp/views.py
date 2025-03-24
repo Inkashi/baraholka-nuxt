@@ -651,7 +651,7 @@ class deleteProduct(APIView):
 class readMessage(APIView):
     def post(self, request):
         try:
-            id = request.data.get('id')
+            id = request.params.get('id')
             chat_id = request.data.get('chat_id')
             message = Message.objects.get(id=id)
             message.isRead = True
@@ -667,5 +667,22 @@ class readMessage(APIView):
             ) 
             return Response(status=status.HTTP_200_OK)
         except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class UnreadMessagesCheck(APIView):
+    def get(self, request):
+        try:
+            user_id = request.query_params.get('id') 
+            print(user_id) 
+            unread_messages_count = Message.objects.filter(
+                receiver=user_id, isRead=False
+            ).count()
+
+            return Response(
+                {"has_unread_messages": unread_messages_count > 0},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
 

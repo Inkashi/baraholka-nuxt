@@ -24,8 +24,13 @@
           <nav class="gap-4 z-10">
             <div v-if="isAuth" class="flex items-center">
               <a href="/chats"
-                ><Icon
+                ><Icon v-if="!hasUnreadMessages"
                   name="tabler:message-circle-filled"
+                  size="48"
+                  color="blue"
+              />
+              <Icon v-if="hasUnreadMessages"
+                  name="tabler:message-circle-exclamation "
                   size="48"
                   color="blue"
               /></a>
@@ -78,11 +83,19 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const route = useRoute();
 const userStore = useAuthStore();
 
+const config = useRuntimeConfig();
+const apiBase = config.public.apiBase as string;
+
 const isAuth = ref(userStore.isAuth);
+
+const userId = ref();
+const hasUnreadMessages = ref(false);
 
 watch(
   () => userStore.isAuth,
@@ -94,6 +107,37 @@ watch(
 const isAuthRoute = computed(() => {
   return route.name === "auth-register" || route.name === "auth-login";
 });
+
+const fetchUserData = async () => {
+  try {
+    const token = useCookie<string | null>("auth_token").value;
+    const decodedToken: any = jwtDecode(token!);
+
+    userId.value = decodedToken.user_id || null;
+
+    checkUnreadMessages();
+
+  }
+  catch (e) {
+    console.log(e)
+  }
+};
+
+const checkUnreadMessages = async () => {
+  try {
+    const response = await axios.get(`${apiBase}/api/UnreadMessagesCheck/`, {
+      params: {id:userId.value}
+    });
+    hasUnreadMessages.value = response.data.has_unread_messages;
+  } catch (error) {
+    console.error("Ошибка при проверке непрочитанных сообщений:", error);
+  }
+};
+
+onMounted(() => {
+  fetchUserData();
+});
+
 </script>
 
 <style lang="scss">
