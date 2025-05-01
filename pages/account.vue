@@ -185,7 +185,7 @@ onMounted(() => {
   <div class="container">
     <loading v-if="isLoading"></loading>
     <div v-else class="userInfo">
-      <div class="flex justify-center items-center">
+      <div class="userInfoFlex">
         <div class="userImage" @click="() => $refs.fileInput.click()">
           <img
             v-if="userPhoto"
@@ -220,7 +220,10 @@ onMounted(() => {
     </div>
     <div class="products-grid">
       <div v-for="product in products" :key="product.id" class="product-item">
-        <img :src="'/api/pictures' + product.picture.photoPath" alt="Product Image" />
+        <img
+          :src="'/api/pictures' + product.picture.photoPath"
+          alt="Product Image"
+        />
         <div class="product-info">
           <p class="card-title">{{ product.title }}</p>
           <p class="card-cost">{{ product.cost }} руб.</p>
@@ -374,6 +377,10 @@ onMounted(() => {
   gap: 20px;
 }
 
+.userInfoFlex {
+  @apply flex justify-center items-center;
+}
+
 .userImage {
   width: 260px;
   height: 28vh;
@@ -428,5 +435,99 @@ onMounted(() => {
 
 h2 {
   font-size: 24px;
+}
+
+@media (max-width: 1024px) {
+  .userInfo {
+    .userImage {
+      width: 250px;
+    }
+
+    flex-direction: column;
+    align-items: flex-start;
+
+    .btns {
+      width: max-content;
+      margin-top: 1rem;
+
+      * {
+        margin-right: 1rem;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+
+  .userImage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3/3;
+  }
+
+  .btns {
+    flex-wrap: wrap;
+    justify-content: right;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .product-item img {
+    height: 150px;
+  }
+
+  .product-info {
+    padding: 8px;
+
+    .card-title {
+      font-size: 16px;
+    }
+
+    .card-cost {
+      font-size: 16px;
+    }
+  }
+
+  .btns {
+    width: 50%;
+  }
+}
+
+@media (max-width: 550px) {
+  .userInfoFlex {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .btns {
+    position: relative;
+  }
+}
+
+@media (max-width: 480px) {
+  .userInfo {
+    padding: 5%;
+
+    h2 {
+      font-size: 20px;
+    }
+  }
+
+  .help-text {
+    display: none;
+  }
+
+  .btns {
+    flex-direction: column;
+
+    * {
+      width: 100%;
+    }
+  }
 }
 </style>

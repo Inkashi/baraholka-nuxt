@@ -11,7 +11,10 @@ const apiBase = config.public.apiBase;
 
 const userInfo = useAuthStore();
 
-// Валидация данных перед отправкой запроса
+const goHome = () => {
+  navigateTo("/");
+};
+
 const validateForm = (): boolean => {
   if (!email.value.trim()) {
     errorMessage.value = "Поле 'почта' не может быть пустым.";
@@ -23,28 +26,25 @@ const validateForm = (): boolean => {
     return false;
   }
 
-  // Проверка формата email с помощью регулярного выражения
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.value)) {
     errorMessage.value = "Введите корректный адрес электронной почты.";
     return false;
   }
 
-  // Проверка минимальной длины пароля
   if (pass.value.length < 6) {
     errorMessage.value = "Пароль должен содержать минимум 6 символов.";
     return false;
   }
 
-  errorMessage.value = ""; // Очищаем сообщение об ошибке, если все проверки пройдены
+  errorMessage.value = "";
   return true;
 };
 
 const login = async () => {
   try {
-    // Выполняем валидацию формы перед отправкой запроса
     if (!validateForm()) {
-      return; // Если форма невалидна, прекращаем выполнение
+      return;
     }
 
     const formData = {
@@ -71,11 +71,7 @@ const login = async () => {
     userInfo.loginUser();
   } catch (error: any) {
     if (error.response) {
-      console.error(error.response.data);
-      alert(
-        "Ошибка авторизации: " + error.response.data.detail ||
-          "Что-то пошло не так"
-      );
+      errorMessage.value = "Что-то не совпадает, проверьте свои данные";
     } else {
       console.error(error);
       alert("Произошла ошибка при отправке запроса.");
@@ -88,16 +84,16 @@ const login = async () => {
   <div class="HelloText">
     <h1 class="flex justify-center">
       Приветствуем вас на
-      <p>Барахолке ЮГУ</p>
+      <p>Барахолке</p>
     </h1>
     <h1>
-      Здесь студенты могут покупать и продавать свои вещи, предлагать услуги и
-      искать попутчиков.
+      Здесь могут покупать и продавать свои вещи, предлагать услуги и искать
+      попутчиков.
     </h1>
     <h1>Просим соблюдать правила площадки и быть вежливым в чатах!</h1>
   </div>
   <div class="log-form shadow-md">
-    <div class="logo">
+    <div class="logo" @click="goHome()">
       <img
         class="h-24 self-center"
         src="../../assets/image/logo.png"
@@ -160,11 +156,12 @@ p {
 
 .login-form {
   @apply flex flex-col space-y-1 self-center;
-  width: 24rem;
+  width: 70%;
 }
 
 input {
   border: 2px solid main.$second-color;
+  font-size: 20px;
   &::placeholder {
     color: main.$second-color;
     font-weight: 600;
@@ -175,21 +172,21 @@ input {
   }
 }
 
-.log {
-  background-color: main.$second-color;
-  width: 30% !important;
-
-  &:hover {
-    background-color: color.adjust(main.$second-color, $lightness: -5%);
-  }
-}
-
 .btn {
   width: 65%;
   font-weight: 600;
   text-align: center;
   align-items: center;
-  font-size: 1vw;
+  font-size: 20px;
+}
+
+.log {
+  background-color: main.$second-color;
+  width: 30%;
+
+  &:hover {
+    background-color: color.adjust(main.$second-color, $lightness: -5%);
+  }
 }
 
 .log-form {
@@ -199,25 +196,124 @@ input {
     $lightness: +15%,
     $alpha: -10%
   );
-  width: max-content;
+  width: 70%;
   margin: auto;
   position: relative;
   top: calc(100vh / 4);
   border-radius: 10px;
-  width: 45rem;
-  height: 10rem;
-}
-
-.logo {
-  @apply mb-2 mr-2 shadow-md rounded-full h-32 w-32 flex justify-center;
-  background-color: color.adjust(main.$window-color, $lightness: +5%);
-  margin-left: 5%;
-  margin-right: 5%;
+  height: 180px;
 }
 
 .error-message {
   margin-top: 0.5rem;
   font-size: 0.875rem;
   color: red;
+}
+
+@media (min-width: 1600px) {
+  .log-form {
+    width: 50%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .log-form {
+    display: block;
+    width: 600px;
+    height: 400px;
+    top: 5vh;
+    padding: 50px;
+    * {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    input,
+    .login-form {
+      width: 480px;
+      font-size: 16px;
+      height: 50px;
+    }
+    .btn {
+      width: 230px;
+      margin: 0;
+      font-size: 16px;
+      height: 50px;
+      text-align: center;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+    }
+
+    div:has(.btn) {
+      margin: 0;
+    }
+  }
+}
+
+@media (max-width: 680px) {
+  .HelloText {
+    font-size: 24px;
+    line-height: 25px;
+    font-weight: bolder;
+  }
+
+  .log-form {
+    width: 480px;
+    height: 330px;
+    top: 2vh;
+    padding: 20px;
+    * {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .login-form {
+      width: 420px;
+      height: max-content;
+
+      input {
+        width: 420px;
+        font-size: 16px;
+        height: 40px;
+      }
+    }
+    .btn {
+      width: 420px;
+      margin: 5px 0 0 0;
+      font-size: 16px;
+      height: 40px;
+    }
+
+    div:has(.btn) {
+      margin: 0;
+      display: block;
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .HelloText {
+    font-size: 20px;
+    line-height: 25px;
+    font-weight: bolder;
+  }
+}
+
+@media (max-width: 500px) {
+  .HelloText {
+    font-size: 4vw;
+    line-height: 20px;
+    font-weight: bolder;
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .log-form,
+  .btn,
+  .login-form,
+  input {
+    width: 100% !important;
+  }
 }
 </style>

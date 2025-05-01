@@ -91,7 +91,7 @@ const createProduct = async () => {
     );
 
     if (response.status === 200) {
-      navigateTo('/account');
+      navigateTo("/account");
       title.value = "";
       description.value = "";
       category.value = null;
@@ -168,10 +168,11 @@ onMounted(() => {
             <input type="number" id="cost" v-model="cost" required />
           </div>
 
-          <!-- Кнопка "Создать" появляется только если все поля заполнены -->
-          <button class="btn" type="submit" v-if="allFieldsFilled">
-            Создать
-          </button>
+          <div class="form-group">
+            <button class="btn" type="submit" v-if="allFieldsFilled">
+              Создать
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -183,6 +184,12 @@ onMounted(() => {
 
 .container {
   height: 60vh;
+  padding: 1rem;
+
+  @media (max-width: 768px) {
+    height: auto;
+    padding: 0.5rem;
+  }
 }
 
 h2 {
@@ -190,107 +197,134 @@ h2 {
   font-weight: bold;
   color: main.$primary-color;
   font-size: 24px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    text-align: center;
+  }
 }
 
 .form-group {
   display: flex;
   flex-direction: row;
+  margin-bottom: 15px;
 
-  label {
-    width: 30%;
-    font-size: 20px;
-    font-weight: bold;
-    color: main.$primary-color;
-    padding-left: 5%;
-    text-transform: uppercase;
+  @media (max-width: 1200px) {
+    flex-direction: column;
+    margin-left: 5%;
+    textarea,
+    input,
+    select {
+      font-size: 16px;
+      width: 100%;
+    }
+
+    label {
+      padding-left: 0;
+    }
   }
+}
 
-  input {
-    border-radius: 15px;
-    border-color: main.$primary-color;
+label {
+  width: 30%;
+  font-size: 20px;
+  font-weight: bold;
+  color: main.$primary-color;
+  padding-left: 5%;
+  text-transform: uppercase;
+
+  @media (max-width: 768px) {
     width: 100%;
-    padding: 1%;
-    width: 70%;
+    margin-bottom: 0.5rem;
+  }
+}
 
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
+input,
+textarea,
+select {
+  width: 70%;
+  padding: 1%;
+  border-radius: 15px;
+  border-color: main.$primary-color;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    font-size: 16px;
+    padding: 2%;
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+textarea {
+  height: 120px;
+  border: 2px solid #008d49;
+  resize: none;
+  background-color: main.$window-color;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
 
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  @media (max-width: 768px) {
+    height: 100px;
   }
+}
 
-  textarea {
-    width: 70%;
-    height: 120px;
-    border-radius: 15px;
-    border: 2px solid main.$primary-color;
-    resize: none;
-    background-color: main.$window-color;
-    padding: 1%;
+select {
+  border: 2px solid main.$primary-color;
+  background-color: main.$window-color;
 
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-
-    &::-webkit-scrollbar {
-      width: 12px;
-      padding: 2px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-      border-radius: 20px;
-    }
-    &::-webkit-scrollbar-thumb {
-      border: 1px solid main.$second-color;
-      height: 20px;
-      background: #888;
-      border-radius: 10px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  }
-
-  select {
-    border-radius: 15px;
-    border: 2px solid main.$primary-color;
-    background-color: main.$window-color;
-    width: 20%;
-
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
 }
 
 .cont {
   height: 70%;
+
+  @media (max-width: 768px) {
+    height: auto;
+  }
 }
 
 .btn {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+  margin-left: 10px;
+  margin-right: 0;
   font-size: 20px;
+  padding: 0.5rem 1rem;
+
+  @media (max-width: 768px) {
+    position: relative;
+    width: 100%;
+    margin-top: 1rem;
+  }
 }
 
 .form-image,
 .form-info {
   height: 100%;
+
+  @media (max-width: 768px) {
+    width: 100% !important;
+    height: auto;
+  }
 }
 
 .form-info {
   width: 80%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 
 .image-alt {
@@ -309,21 +343,31 @@ h2 {
   align-items: center;
   text-align: center;
 
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 300px;
+    height: 200px;
+    margin: 0 auto;
+    font-size: 18px;
+  }
+
   img {
     width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
     border-radius: 10px;
+    object-fit: cover;
   }
 }
 
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
+@media (max-width: 768px) {
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 </style>

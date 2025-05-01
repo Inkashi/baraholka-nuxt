@@ -11,6 +11,10 @@ const apiBase = config.public.apiBase;
 
 const errors = ref<{ [key: string]: string }>({});
 
+const goHome = () => {
+  navigateTo("/");
+};
+
 const validateForm = (): boolean => {
   errors.value = {};
 
@@ -58,7 +62,7 @@ const submitForm = async () => {
       formData
     );
     console.log(response.data);
-    navigateTo('/auth/login');
+    navigateTo("/auth/login");
   } catch (error: any) {
     if (error.response) {
       console.error(error.response.data);
@@ -78,12 +82,8 @@ const submitForm = async () => {
   <a class="arrow-back" href="/auth/login">Вернуться</a>
   <div class="reg-form">
     <div class="reg-card">
-      <div class="logo">
-        <img
-          class="size-15 self-center"
-          src="../../assets/image/logo.png"
-          alt="Logo"
-        />
+      <div class="logo" @click="goHome()">
+        <img class="self-center" src="../../assets/image/logo.png" alt="Logo" />
       </div>
       <div class="flex items-center mr-35 self-center">
         <form @submit.prevent="submitForm" class="flex flex-col w-96">
@@ -169,6 +169,11 @@ p {
   @apply h-screen flex items-center justify-center;
 }
 
+.logo {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .reg-card {
   @apply w-max flex justify-center flex-col shadow-md;
   background-color: color.scale(
@@ -180,14 +185,42 @@ p {
   border-radius: 10px;
 }
 
-.logo {
-  @apply mb-2 self-center shadow-md rounded-full h-32 w-32 flex justify-center;
-  background-color: color.adjust(main.$window-color, $lightness: +5%);
-  padding: 3%;
-}
-
 .btn {
   @apply shadow-md mt-3 place-self-center;
   font-size: 18px !important;
+}
+
+@media (min-width: 1024px) {
+  input {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 1024px) {
+  input {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  input {
+    font-size: 20px;
+    width: 100%;
+  }
+
+  .reg-card {
+    padding: 20px 30px;
+  }
+
+  .arrow-back {
+    margin: 0;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+}
+
+@media (max-width: 500px) {
 }
 </style>

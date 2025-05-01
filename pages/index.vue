@@ -236,7 +236,11 @@ onMounted(() => {
             <p class="card-title">{{ product.title }}</p>
             <p class="card-cost">{{ product.cost }} ₽</p>
           </div>
-          <button v-if="userId" class="favorite-button" @click.stop="addToFavorites(product)">
+          <button
+            v-if="userId"
+            class="favorite-button"
+            @click.stop="addToFavorites(product)"
+          >
             <img
               :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon"
               alt="Favorite"
@@ -290,10 +294,10 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
 
     &:hover {
-      background-color: #e0e0e0;
+      color: rgb(182, 182, 182);
     }
 
     .icon {
@@ -327,7 +331,7 @@ onMounted(() => {
       transition: background-color 0.3s ease;
 
       &:hover {
-        background-color: #f0f0f0;
+        background-color: #ffffff;
       }
     }
   }
@@ -356,6 +360,7 @@ onMounted(() => {
     font-weight: 600;
     height: auto;
     margin: 0;
+    font-size: 18px;
     border: 2px solid main.$second-color;
     border-radius: 5px 0 0 5px;
 
@@ -375,26 +380,25 @@ onMounted(() => {
     color: white;
     border-radius: 0 5px 5px 0;
     width: 20%;
-    transition: all 0.5s;
+    transition: all 0.1s;
 
     &:hover {
       font-size: 18px;
-      color: rgb(198, 198, 255);
+      color: rgb(219, 219, 219);
     }
 
     @media (max-width: 768px) {
-      width: 100%; /* На маленьких экранах занимает всю ширину */
+      width: 100%;
       height: 50px;
-      border-radius: 5px; /* Убираем скругление только справа */
+      border-radius: 5px;
     }
   }
 
   @media (max-width: 768px) {
-    flex-direction: column; /* На маленьких экранах делаем вертикальное расположение */
+    flex-direction: column;
   }
 }
 
-/* Сетка товаров */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -421,7 +425,7 @@ onMounted(() => {
     object-fit: cover;
 
     @media (max-width: 768px) {
-      height: 150px; /* Уменьшаем высоту изображений */
+      height: 150px;
     }
   }
 
@@ -438,7 +442,7 @@ onMounted(() => {
       margin-bottom: 1px;
 
       @media (max-width: 768px) {
-        font-size: 14px; /* Уменьшаем размер текста */
+        font-size: 14px;
       }
     }
 
@@ -449,7 +453,7 @@ onMounted(() => {
       font-weight: bold;
 
       @media (max-width: 768px) {
-        font-size: 14px; /* Уменьшаем размер текста */
+        font-size: 14px;
       }
     }
   }
@@ -468,6 +472,33 @@ onMounted(() => {
       width: 100%;
       height: 100%;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .category-selector {
+    width: 50%;
+
+    .category-button {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+  }
+  .search-bar {
+    flex-direction: row;
+    row-gap: 10px;
+  }
+
+  .search-input {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 460px) {
+  .category-button {
+    height: 60px;
   }
 }
 </style>

@@ -141,10 +141,14 @@ onMounted(() => {
           <div class="image-alt" @click="triggerFileInput">
             <img
               v-if="picturePreview"
-              :src="picturePreview?.includes('blob') ? picturePreview : '/api/pictures' + picturePreview"
+              :src="
+                picturePreview?.includes('blob')
+                  ? picturePreview
+                  : '/api/pictures' + picturePreview
+              "
               alt="Превью товара"
             />
-            
+
             <span v-else>Загрузите <br />фото <br />товара</span>
           </div>
           <input
@@ -177,6 +181,7 @@ onMounted(() => {
               id="description"
               v-model="description"
               required
+              maxlength="255"
             ></textarea>
           </div>
 
@@ -184,12 +189,13 @@ onMounted(() => {
             <label for="cost">Цена</label>
             <input type="number" id="cost" v-model="cost" required />
           </div>
-
-          <div class="buttons">
-            <button class="btn" type="submit">Изменить товар</button>
-            <button class="btn exit" @click="deleteProduct">
-              Удалить товар
-            </button>
+          <div class="form-group">
+            <div class="buttons">
+              <button class="btn" type="submit">Изменить товар</button>
+              <button class="btn exit" @click="deleteProduct">
+                Удалить товар
+              </button>
+            </div>
           </div>
         </div>
       </form>
@@ -202,130 +208,152 @@ onMounted(() => {
 
 .container {
   height: 60vh;
+  padding: 1rem;
+
+  @media (max-width: 768px) {
+    height: auto;
+    padding: 0.5rem;
+  }
 }
 
 h2 {
   text-transform: uppercase;
   font-weight: bold;
-  color: main.$second-color;
+  color: main.$primary-color;
   font-size: 24px;
+
+  @media (max-width: 768px) {
+    font-size: 20px;
+    text-align: center;
+  }
 }
 
 .form-group {
   display: flex;
   flex-direction: row;
+  margin-bottom: 15px;
 
-  label {
-    width: 30%;
-    font-size: 20px;
-    font-weight: bold;
-    color: main.$second-color;
-    padding-left: 5%;
-    text-transform: uppercase;
+  @media (max-width: 1200px) {
+    flex-direction: column;
+    margin-left: 5%;
+    textarea,
+    input,
+    select {
+      font-size: 16px;
+      width: 100%;
+    }
+
+    label {
+      padding-left: 0;
+    }
   }
+}
 
-  input {
-    border-radius: 15px;
-    border-color: main.$second-color;
+label {
+  width: 30%;
+  font-size: 20px;
+  font-weight: bold;
+  color: main.$primary-color;
+  padding-left: 5%;
+  text-transform: uppercase;
+
+  @media (max-width: 768px) {
     width: 100%;
-    padding: 1%;
-    width: 70%;
+    margin-bottom: 0.5rem;
+  }
+}
 
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
+input,
+textarea,
+select {
+  width: 70%;
+  padding: 1%;
+  border-radius: 15px;
+  border-color: main.$primary-color;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    font-size: 16px;
+    padding: 2%;
+  }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+textarea {
+  height: 120px;
+  border: 2px solid #008d49;
+  resize: none;
+  background-color: main.$window-color;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
 
-  input[type="number"]::-webkit-inner-spin-button,
-  input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  @media (max-width: 768px) {
+    height: 100px;
   }
+}
 
-  textarea {
-    width: 70%;
-    height: 120px;
-    border-radius: 15px;
-    border: 2px solid main.$second-color;
-    resize: none;
-    background-color: main.$window-color;
-    padding: 1%;
+select {
+  border: 2px solid main.$primary-color;
+  background-color: main.$window-color;
 
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-
-    &::-webkit-scrollbar {
-      width: 12px;
-      padding: 2px;
-    }
-    &::-webkit-scrollbar-track {
-      background: transparent;
-      border-radius: 20px;
-    }
-    &::-webkit-scrollbar-thumb {
-      border: 1px solid main.$second-color;
-      height: 20px;
-      background: #888;
-      border-radius: 10px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  }
-
-  select {
-    border-radius: 15px;
-    border: 2px solid main.$second-color;
-    background-color: main.$window-color;
-    width: 20%;
-
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
 }
 
 .cont {
   height: 70%;
-}
 
-.buttons {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 340px;
+  @media (max-width: 768px) {
+    height: auto;
+  }
 }
 
 .btn {
+  margin-left: 10px;
+  margin-right: 0;
   font-size: 20px;
-  transition: all 1s;
-  &:hover {
-    transform: scale(0.95);
+  padding: 0.5rem 1rem;
+
+  @media (max-width: 768px) {
+    position: relative;
+    width: 100%;
+    margin-top: 1rem;
   }
 }
 
 .form-image,
 .form-info {
   height: 100%;
+
+  @media (max-width: 768px) {
+    width: 100% !important;
+    height: auto;
+  }
 }
 
 .form-info {
   width: 80%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 
-.exit {
-  background-color: rgba(255, 0, 0, 0.651) !important;
-  margin-left: 1%;
-  &:hover {
-    background-color: rgb(255, 0, 0);
-  }
+.buttons {
+  display: flex;
+  justify-content: right;
 }
 
 .image-alt {
@@ -333,8 +361,8 @@ h2 {
   text-transform: uppercase;
   font-size: 24px;
   font-weight: bold;
-  color: main.$primary-color;
-  border: 5px solid main.$second-color;
+  color: main.$second-color;
+  border: 5px solid main.$primary-color;
   border-radius: 15px;
   height: 260px;
   width: 260px;
@@ -344,21 +372,35 @@ h2 {
   align-items: center;
   text-align: center;
 
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 300px;
+    height: 200px;
+    margin: 0 auto;
+    font-size: 18px;
+  }
+
   img {
     width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
     border-radius: 10px;
+    object-fit: cover;
   }
 }
 
-.form-group {
-  margin-bottom: 15px;
+.form-group:has(.buttons) {
+  justify-content: right;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
+@media (max-width: 768px) {
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 </style>
