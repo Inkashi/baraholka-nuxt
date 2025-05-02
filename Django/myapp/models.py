@@ -135,6 +135,18 @@ class Message(models.Model):
         db_table = 'messages'
         managed = True
 
+class RecoveryCode(models.Model):
+    id = models.AutoField(primary_key=True)
+    code = models.CharField(max_length=6)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requesting_code')
+    usage = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'recoveryCodes'
+        managed = True
+
+
 
 
     

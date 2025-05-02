@@ -4,7 +4,10 @@ import { ref } from "vue";
 
 const email = ref<string>("");
 const pass = ref<string>("");
+const code = ref<string>("");
 const errorMessage = ref<string>("");
+const recovery = ref<bool>(false);
+const checkRecovery = ref<bool>(false);
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
@@ -78,6 +81,62 @@ const login = async () => {
     }
   }
 };
+
+const passRecoveryGet = async () => {
+  try {
+    const response = await axios.get(`${apiBase}/api/passRecovery/`, {
+      params: {
+        email: email.value,
+      },
+    }
+    );
+
+    if (response.status == 200) {
+      checkRecovery.value = true;
+      recovery.value = false;
+    }
+
+  } catch (error: any) {
+    console.error(error);
+    if (error.status == 400) {
+      alert('Скорее всего email введен не верно');
+    } else if (error.status == 429) {
+      alert('Запрос слишком частый. Подождите 2 минуты перед повторным запросом.');
+    }
+    else {
+      alert("Произошла ошибка при отправке запроса.");
+    }
+  }
+};
+
+const passRecoveryPost = async () => {
+  try {
+    const formData = {
+      email: email.value,
+      code: code.value,
+      pass: pass.value
+    };
+
+    const response = await axios.post(`${apiBase}/api/passRecovery/`, formData
+    );
+
+    if (response.status == 200) {
+      checkRecovery.value = false;
+    }
+  } catch (error: any) {
+    if (error.status == 400) {
+      alert('Что-то введено не верно');
+    } else if (error.status == 403) {
+      alert('Время действия кода истекло');
+      checkRecovery = false;
+      recovery = true;
+    }
+    else {
+      alert("Произошла ошибка при отправке запроса.");
+    }
+    
+  }
+};
 </script>
 
 <template>
@@ -94,34 +153,30 @@ const login = async () => {
   </div>
   <div class="log-form shadow-md">
     <div class="logo" @click="goHome()">
-      <img
-        class="h-24 self-center"
-        src="../../assets/image/logo.png"
-        alt="Logo"
-      />
+      <img class="h-24 self-center" src="../../assets/image/logo.png" alt="Logo" />
     </div>
-    <form @submit.prevent="login" class="login-form">
-      <input
-        type="email"
-        placeholder="почта"
-        v-model="email"
-        class="input"
-        required
-      />
-      <input
-        type="password"
-        placeholder="пароль"
-        v-model="pass"
-        class="input"
-        required
-      />
+    <form v-if="!recovery && !checkRecovery" @submit.prevent="login" class="login-form">
+      <input type="email" placeholder="почта" v-model="email" class="input" required />
+      <input type="password" placeholder="пароль" v-model="pass" class="input" required />
       <div v-if="errorMessage" class="error-message text-red-500 text-sm">
         {{ errorMessage }}
       </div>
       <div class="flex justify-between">
         <button type="submit" class="btn log">вход</button>
         <a class="btn" href="/auth/register">регистрация</a>
+        <h3 @click="recovery = true;">забыли пароль?</h3>
       </div>
+    </form>
+    <form v-if="recovery" @submit.prevent="passRecoveryGet">
+      <input type="email" placeholder="почта" v-model="email" class="input" required>
+      <button type="submit" class="btn">отправить</button>
+    </form>
+    <form v-if="checkRecovery" @submit.prevent="passRecoveryPost">
+
+      <input type="email" placeholder="почта" v-model="email" class="input" required>
+      <input type="text" placeholder="код" v-model="code" class="input" required>
+      <input type="text" placeholder="пароль" v-model="pass" class="input" required>
+      <button type="submit" class="btn">изменить</button>
     </form>
   </div>
 </template>
@@ -162,6 +217,7 @@ p {
 input {
   border: 2px solid main.$second-color;
   font-size: 20px;
+
   &::placeholder {
     color: main.$second-color;
     font-weight: 600;
@@ -191,11 +247,9 @@ input {
 
 .log-form {
   @apply flex items-center;
-  background-color: color.scale(
-    main.$window-color,
-    $lightness: +15%,
-    $alpha: -10%
-  );
+  background-color: color.scale(main.$window-color,
+      $lightness: +15%,
+      $alpha: -10%);
   width: 70%;
   margin: auto;
   position: relative;
@@ -223,6 +277,7 @@ input {
     height: 400px;
     top: 5vh;
     padding: 50px;
+
     * {
       margin-left: auto;
       margin-right: auto;
@@ -234,6 +289,7 @@ input {
       font-size: 16px;
       height: 50px;
     }
+
     .btn {
       width: 230px;
       margin: 0;
@@ -263,6 +319,7 @@ input {
     height: 330px;
     top: 2vh;
     padding: 20px;
+
     * {
       margin-left: auto;
       margin-right: auto;
@@ -278,6 +335,7 @@ input {
         height: 40px;
       }
     }
+
     .btn {
       width: 420px;
       margin: 5px 0 0 0;
@@ -309,6 +367,7 @@ input {
     padding-left: 0;
     padding-right: 0;
   }
+
   .log-form,
   .btn,
   .login-form,

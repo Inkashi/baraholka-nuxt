@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Product, Category, Chat, Message, Picture, Status, FavoriteCollection, Favorite
+from .models import User, Product, Category, Chat, Message, Picture, Status, FavoriteCollection, Favorite, RecoveryCode
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
@@ -13,6 +13,10 @@ import os
 from datetime import datetime
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import random, string
+from django.core.mail import EmailMessage
+from datetime import timedelta
+from django.utils import timezone
 
 
 # Регистрация
@@ -465,6 +469,64 @@ class changeUserProfile(APIView):
         
         return unique_name
     
+class passRecovery(APIView):
+    def get(self, request):
+        try:
+            email = request.query_params.get('email')
+            user = User.objects.get(email=email)
+            if not user:
+                return Response('Пользователя с таким email не существует', status=status.HTTP_400_BAD_REQUEST)
+            
+            last_code = RecoveryCode.objects.filter(user=user).filter(usage=False).order_by('-created').first()
+
+            now = timezone.now()
+
+            if last_code and (now - last_code.created) < timedelta(minutes=2):
+                return Response(
+                    'Запрос слишком частый. Подождите 2 минуты перед повторным запросом.',
+                    status=status.HTTP_429_TOO_MANY_REQUESTS
+                )
+            
+            code = self.generate_code()
+
+            RecoveryCode.objects.create(code = code, user = user)
+            
+            email_message = EmailMessage(
+                'Восстановление пароля',
+                f'Вот ваш код для восстановления пароля - {code}',
+                to=[email]
+            )
+            email_message.send()
+            return Response(status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)  
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+    def post(self, request):
+        try:
+            email = request.data.get('email')
+            tmp = request.data.get('code')
+            password = request.data.get('pass')
+            user = User.objects.get(email = email)
+            code = RecoveryCode.objects.get(code = tmp)
+            if code and code.usage == False and code.user == user:
+                if (timezone.now() - code.created) < timedelta(minutes=2):
+                    code.usage = True
+                    code.save()
+                    user.password = make_password(password)
+                    user.save()
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return Response(status=status.HTTP_403_FORBIDDEN)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)  
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+    def generate_code(self,length=6):
+        characters = string.ascii_uppercase + string.digits  
+        return ''.join(random.choices(characters, k=length))
+
 class getUsersByChat(APIView):
     def get(self,request):
         chat_id = request.query_params.get('chat')
