@@ -11,7 +11,7 @@ const checkRecovery = ref<bool>(false);
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
-
+const errorMsg = ref<string>("");
 const userInfo = useAuthStore();
 
 const goHome = () => {
@@ -88,22 +88,19 @@ const passRecoveryGet = async () => {
       params: {
         email: email.value,
       },
-    }
-    );
+    });
 
     if (response.status == 200) {
       checkRecovery.value = true;
       recovery.value = false;
     }
-
   } catch (error: any) {
     console.error(error);
     if (error.status == 400) {
-      alert('Скорее всего email введен не верно');
+      errorMsg.value = "Данная почта не найдена";
     } else if (error.status == 429) {
-      alert('Запрос слишком частый. Подождите 2 минуты перед повторным запросом.');
-    }
-    else {
+      errorMsg.value = "Частые запросы, подождите 2 минуты";
+    } else {
       alert("Произошла ошибка при отправке запроса.");
     }
   }
@@ -114,27 +111,24 @@ const passRecoveryPost = async () => {
     const formData = {
       email: email.value,
       code: code.value,
-      pass: pass.value
+      pass: pass.value,
     };
 
-    const response = await axios.post(`${apiBase}/api/passRecovery/`, formData
-    );
+    const response = await axios.post(`${apiBase}/api/passRecovery/`, formData);
 
     if (response.status == 200) {
       checkRecovery.value = false;
     }
   } catch (error: any) {
     if (error.status == 400) {
-      alert('Что-то введено не верно');
+      alert("Что-то введено не верно");
     } else if (error.status == 403) {
-      alert('Время действия кода истекло');
+      alert("Время действия кода истекло");
       checkRecovery = false;
       recovery = true;
-    }
-    else {
+    } else {
       alert("Произошла ошибка при отправке запроса.");
     }
-    
   }
 };
 </script>
@@ -153,29 +147,82 @@ const passRecoveryPost = async () => {
   </div>
   <div class="log-form shadow-md">
     <div class="logo" @click="goHome()">
-      <img class="h-24 self-center" src="../../assets/image/logo.png" alt="Logo" />
+      <img
+        class="h-24 self-center"
+        src="../../assets/image/logo.png"
+        alt="Logo"
+      />
     </div>
-    <form v-if="!recovery && !checkRecovery" @submit.prevent="login" class="login-form">
-      <input type="email" placeholder="почта" v-model="email" class="input" required />
-      <input type="password" placeholder="пароль" v-model="pass" class="input" required />
+    <form
+      v-if="!recovery && checkRecovery"
+      @submit.prevent="login"
+      class="login-form"
+    >
+      <input
+        type="email"
+        placeholder="почта"
+        v-model="email"
+        class="input"
+        required
+      />
+      <input
+        type="password"
+        placeholder="пароль"
+        v-model="pass"
+        class="input"
+        required
+      />
       <div v-if="errorMessage" class="error-message text-red-500 text-sm">
         {{ errorMessage }}
       </div>
       <div class="flex justify-between">
         <button type="submit" class="btn log">вход</button>
         <a class="btn" href="/auth/register">регистрация</a>
-        <h3 @click="recovery = true;">забыли пароль?</h3>
       </div>
+      <a @click="recovery = true" class="recoveryLink">забыли пароль?</a>
     </form>
-    <form v-if="recovery" @submit.prevent="passRecoveryGet">
-      <input type="email" placeholder="почта" v-model="email" class="input" required>
+    <form
+      v-if="!recovery"
+      @submit.prevent="passRecoveryGet"
+      class="recoveryPass"
+    >
+      <h1>{{ errorMsg }}</h1>
+      <input
+        type="email"
+        placeholder="почта"
+        v-model="email"
+        class="input"
+        required
+      />
       <button type="submit" class="btn">отправить</button>
     </form>
-    <form v-if="checkRecovery" @submit.prevent="passRecoveryPost">
-
-      <input type="email" placeholder="почта" v-model="email" class="input" required>
-      <input type="text" placeholder="код" v-model="code" class="input" required>
-      <input type="text" placeholder="пароль" v-model="pass" class="input" required>
+    <form
+      v-if="checkRecovery"
+      @submit.prevent="passRecoveryPost"
+      class="recoveryPass"
+    >
+      <input
+        type="email"
+        placeholder="почта"
+        v-model="email"
+        class="input"
+        required
+      />
+      <div>На данную почту был отправлен код для востановления пароля</div>
+      <input
+        type="text"
+        placeholder="Введите код c почты"
+        v-model="code"
+        class="input"
+        required
+      />
+      <input
+        type="text"
+        placeholder="Введите новый пароль"
+        v-model="pass"
+        class="input"
+        required
+      />
       <button type="submit" class="btn">изменить</button>
     </form>
   </div>
@@ -185,6 +232,43 @@ const passRecoveryPost = async () => {
 @use "~/assets/scss/main.scss" as main;
 @use "sass:color";
 
+.content {
+  height: max-content + 10px;
+}
+
+.recoveryPass {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+
+  div {
+    margin: 0;
+    font-size: 12px;
+    margin-left: 10px;
+  }
+
+  h1 {
+    font-weight: 18px;
+  }
+
+  .input,
+  button {
+    width: 100% !important;
+    margin-bottom: 5px;
+  }
+}
+
+.recoveryLink {
+  margin-left: auto;
+  margin-right: auto;
+  cursor: pointer;
+
+  &:hover {
+    border-bottom: 1px solid black;
+    color: blue;
+  }
+}
 h1 {
   text-align: center;
   color: main.$second-color;
@@ -247,9 +331,11 @@ input {
 
 .log-form {
   @apply flex items-center;
-  background-color: color.scale(main.$window-color,
-      $lightness: +15%,
-      $alpha: -10%);
+  background-color: color.scale(
+    main.$window-color,
+    $lightness: +15%,
+    $alpha: -10%
+  );
   width: 70%;
   margin: auto;
   position: relative;
@@ -274,9 +360,10 @@ input {
   .log-form {
     display: block;
     width: 600px;
-    height: 400px;
+    height: 450px;
     top: 5vh;
     padding: 50px;
+    margin-bottom: 100px;
 
     * {
       margin-left: auto;
@@ -316,7 +403,6 @@ input {
 
   .log-form {
     width: 480px;
-    height: 330px;
     top: 2vh;
     padding: 20px;
 
