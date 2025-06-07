@@ -8,12 +8,15 @@ const route = useRoute();
 const router = useRouter();
 
 const userStore = useAuthStore();
-
+const config = useRuntimeConfig();
+const apiBase = config.public.apiBase;
 const mobileMenuOpen = ref(false);
 const isAuth = ref(userStore.isAuth);
 const hasUnreadMessages = ref(false);
 const userId = ref<string | null>(null);
-
+const userEmail = ref();
+const showModal = ref(false);
+const msg = ref();
 const isAuthRoute = computed(() => {
   return route.name === "auth-register" || route.name === "auth-login";
 });
@@ -50,6 +53,39 @@ const checkUnreadMessages = async () => {
   } catch (error) {
     console.error("Ошибка при проверке непрочитанных сообщений:", error);
   }
+};
+
+const sendMsg = async () => {
+  if (!msg) {
+    console.log("Поле пустое");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("email", userEmail.value);
+  formData.append("msg", msg.value);
+  try {
+    const response = await axios.post(`${apiBase}/api/feedback/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.status === 200) {
+      showModal.value = false;
+      msg.value = "";
+    }
+  } catch (error) {
+    console.error("Ошибка при создании товара:", error);
+    alert("Произошла ошибка при создании товара.");
+  }
+};
+
+const getSupport = () => {
+  console.log("Я тут");
+  userEmail.value = useCookie<string | null>("userEmail").value;
+  showModal.value = true;
+  closeMobileMenu;
 };
 
 watch(
@@ -132,6 +168,9 @@ onMounted(async () => {
               <a href="/favorites">
                 <Icon name="mdi:heart" size="48" />
               </a>
+              <button @click="getSupport">
+                <Icon name="material-symbols:contact-support" size="48"></Icon>
+              </button>
             </div>
           </nav>
           <nav v-else>
@@ -209,6 +248,19 @@ onMounted(async () => {
                   </div>
                 </a>
 
+                <button
+                  @click="getSupport"
+                  class="w-full text-center text-white"
+                >
+                  <div class="flex items-center justify-center gap-2">
+                    <Icon
+                      name="material-symbols:contact-support"
+                      size="32"
+                    ></Icon>
+                    <span class="">Поддержка</span>
+                  </div>
+                </button>
+
                 <a
                   href="/createProduct"
                   @click="closeMobileMenu"
@@ -224,6 +276,22 @@ onMounted(async () => {
     </div>
     <main class="content">
       <slot></slot>
+      <div v-if="showModal" class="modalWindow" @submit.prevent="sendMsg">
+        <form class="modalForm relative">
+          <h2 class="mb-5">Свяжитесь с нами</h2>
+          <sub class="mb-10"
+            >Ответ вы получите на свою почту в течение 2-3 дней</sub
+          >
+          <textarea v-model="msg" class="text-area" />
+          <button type="submit" class="btn mt-10">Отправить</button>
+          <button
+            @click="showModal = false"
+            class="absolute top-5 right-5 text-xl"
+          >
+            X
+          </button>
+        </form>
+      </div>
     </main>
 
     <footer
@@ -234,9 +302,6 @@ onMounted(async () => {
           <p>Контактные данные:</p>
           <p>Телефон: <a href="tel:78005553535">+7 800 555 35 35</a></p>
           <p>Почта: <a href="mailto:baraholka@ugra.su">baraholka@ugra.su</a></p>
-        </div>
-        <div>
-          <p>Адрес: г.Ханты-Мансийск, ул.Чехова д.16</p>
         </div>
       </div>
     </footer>
@@ -275,6 +340,42 @@ onMounted(async () => {
 
   .logo-df {
     @apply flex justify-center items-center;
+  }
+}
+
+.modalWindow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modalForm {
+  background-color: aliceblue;
+  width: 60%;
+  height: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 80%;
+  border-radius: 20px;
+  h2 {
+    font-size: 32px;
+    text-align: center;
+  }
+
+  textarea {
+    resize: none;
+    width: 80%;
+    height: 60%;
   }
 }
 

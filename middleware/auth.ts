@@ -54,7 +54,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   function redirectToMain() {
-    if (to.path !== "/") {
+    if (to.path !== "/" && to.path !== "/rules") {
       return navigateTo("/", { external: true });
     }
   }

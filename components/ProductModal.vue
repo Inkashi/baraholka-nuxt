@@ -94,16 +94,33 @@ const isFavorite = () => {
       </div>
       <!-- Кнопки действий -->
       <div class="action-buttons">
-        <button v-if="userId" class="favorite-button" @click.stop="addToFavorites">
+        <button
+          v-if="userId"
+          class="favorite-button"
+          @click.stop="addToFavorites"
+        >
           <img
             :src="isFavorite() ? favoriteIcon : notFavoriteIcon"
             alt="Favorite"
             class="favorite-icon"
           />
         </button>
-        <button v-if="userId && userId!=secondUser" class="contact-button" @click="getChat">
+        <button
+          v-if="userId && userId != secondUser"
+          class="contact-button"
+          @click="getChat"
+        >
           Связаться с продавцом
         </button>
+        <div class="flex justify-end w-full">
+          <a
+            href="/auth/login"
+            v-if="!userId"
+            class="contact-button justify-end"
+          >
+            Авторизоваться
+          </a>
+        </div>
       </div>
     </div>
   </div>

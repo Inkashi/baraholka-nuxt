@@ -6,8 +6,8 @@ const email = ref<string>("");
 const pass = ref<string>("");
 const code = ref<string>("");
 const errorMessage = ref<string>("");
-const recovery = ref<bool>(false);
-const checkRecovery = ref<bool>(false);
+const recovery = ref<boolean>(false);
+const checkRecovery = ref<boolean>(false);
 
 const config = useRuntimeConfig();
 const apiBase = config.public.apiBase;
@@ -68,9 +68,16 @@ const login = async () => {
       sameSite: "strict",
       maxAge: 86400,
     });
+    const userEmail = useCookie("userEmail", {
+      httpOnly: false,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 86400,
+    });
 
     authToken.value = response.data.tokens.access;
     refreshToken.value = response.data.tokens.refresh;
+    userEmail.value = email.value;
     userInfo.loginUser();
   } catch (error: any) {
     if (error.response) {
@@ -124,8 +131,8 @@ const passRecoveryPost = async () => {
       alert("Что-то введено не верно");
     } else if (error.status == 403) {
       alert("Время действия кода истекло");
-      checkRecovery = false;
-      recovery = true;
+      checkRecovery.value = false;
+      recovery.value = true;
     } else {
       alert("Произошла ошибка при отправке запроса.");
     }
@@ -140,10 +147,14 @@ const passRecoveryPost = async () => {
       <p>Барахолке</p>
     </h1>
     <h1>
-      Здесь могут покупать и продавать свои вещи, предлагать услуги и искать
+      Здесь можно покупать и продавать свои вещи, предлагать услуги и искать
       попутчиков.
     </h1>
-    <h1>Просим соблюдать правила площадки и быть вежливым в чатах!</h1>
+    <h1>
+      Просим соблюдать
+      <a class="rules-link" href="/rules">правила</a> площадки и быть вежливым в
+      чатах!
+    </h1>
   </div>
   <div class="log-form shadow-md">
     <div class="logo" @click="goHome()">
@@ -154,7 +165,7 @@ const passRecoveryPost = async () => {
       />
     </div>
     <form
-      v-if="!recovery && checkRecovery"
+      v-if="!recovery && !checkRecovery"
       @submit.prevent="login"
       class="login-form"
     >
@@ -182,7 +193,7 @@ const passRecoveryPost = async () => {
       <a @click="recovery = true" class="recoveryLink">забыли пароль?</a>
     </form>
     <form
-      v-if="!recovery"
+      v-if="recovery"
       @submit.prevent="passRecoveryGet"
       class="recoveryPass"
     >
@@ -259,6 +270,16 @@ const passRecoveryPost = async () => {
   }
 }
 
+.rules-link {
+  margin-left: 10px;
+  margin-right: 10px;
+
+  &:hover {
+    opacity: 80%;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
 .recoveryLink {
   margin-left: auto;
   margin-right: auto;

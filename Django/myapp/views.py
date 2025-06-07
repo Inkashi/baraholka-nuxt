@@ -212,8 +212,8 @@ class createProduct(APIView):
                                     status = Status.objects.get(id=1)
                                     )
             return Response('All good', status=status.HTTP_200_OK)
-        except: 
-            return Response('Something is wrong', status=status.HTTP_400_BAD_REQUEST)
+        except ZeroDivisionError as e: 
+            return Response(e, status=status.HTTP_400_BAD_REQUEST)
         
     def generate_unique_filename(self, original_name):
         name, ext = os.path.splitext(original_name)
@@ -328,6 +328,7 @@ class getUser(APIView):
             'email':user.email,
             'name':user.name,
             'photoPath':user.photoPath
+
 
         }
         
@@ -526,6 +527,23 @@ class passRecovery(APIView):
     def generate_code(self,length=6):
         characters = string.ascii_uppercase + string.digits  
         return ''.join(random.choices(characters, k=length))
+        
+class feedback(APIView):
+    def post(self, request):
+        try:
+            email = request.data.get('email')
+            msg = request.data.get('msg')
+            email_message = EmailMessage(
+                f'Пользователь {email} шлёт вам привет',
+                f'{msg}',
+                to=["baraholkaugu@mail.ru"]
+            )
+            email_message.send()
+            return Response(status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)  
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
 
 class getUsersByChat(APIView):
     def get(self,request):

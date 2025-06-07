@@ -26,14 +26,7 @@ const selectedCategory = ref<{ id: number; title: string } | null>(null);
 const selectedSortOption = ref<string | null>(null);
 
 // Категории
-const categories = ref([
-  { id: 0, title: "Все" },
-  { id: 1, title: "Одежда" },
-  { id: 2, title: "Услуги" },
-  { id: 3, title: "Электроника" },
-  { id: 4, title: "Работа" },
-  { id: 5, title: "Разное" },
-]);
+const categories = ref();
 
 const toggleCategoryDropdown = () => {
   isCategoryDropdownOpen.value = !isCategoryDropdownOpen.value;
@@ -164,6 +157,17 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
+const getCategories = async () => {
+  try {
+    const response = await axios.get(`${apiBase}/api/getCategories/`);
+    categories.value = response.data;
+    console.log(categories.value);
+    console.log(response.data);
+  } catch (error) {
+    console.error("Ошибка при загрузке категории", error);
+  }
+};
+
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
 });
@@ -171,6 +175,7 @@ onUnmounted(() => {
 onMounted(() => {
   fetchUserData();
   getSearch();
+  getCategories();
   document.addEventListener("click", handleClickOutside);
 });
 </script>

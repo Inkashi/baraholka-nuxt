@@ -50,6 +50,7 @@ const fetchCategories = async () => {
   try {
     const response = await axios.get(`${apiBase}/api/getCategories/`);
     categories.value = response.data;
+    const temp = categories.value.shift();
   } catch (error) {
     console.error("Ошибка при получении категорий:", error);
   }
