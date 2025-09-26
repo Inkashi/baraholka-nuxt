@@ -36,6 +36,10 @@ const getChat = async () => {
       firstUser: props.userId,
       secondUser: props.secondUser,
     });
+    const logText = `Пользователь ${props.userId} создал чат с  ${props.secondUser}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+    });
 
     const chat_id = response.data;
     navigateTo(`/chats/${chat_id}`);
@@ -77,11 +81,7 @@ const isFavorite = () => {
       <button @click="closeModal" class="close-button">✕</button>
       <div class="flex w-full">
         <div class="product-image-container">
-          <img
-            :src="'/api/pictures' + selectedProduct.picture"
-            alt="Product Image"
-            class="product-image"
-          />
+          <img :src="'/api/pictures' + selectedProduct.picture" alt="Product Image" class="product-image" />
         </div>
         <div class="product-details flex flex-col text-left ml-6">
           <p><strong>Описание:</strong></p>
@@ -94,30 +94,14 @@ const isFavorite = () => {
       </div>
       <!-- Кнопки действий -->
       <div class="action-buttons">
-        <button
-          v-if="userId"
-          class="favorite-button"
-          @click.stop="addToFavorites"
-        >
-          <img
-            :src="isFavorite() ? favoriteIcon : notFavoriteIcon"
-            alt="Favorite"
-            class="favorite-icon"
-          />
+        <button v-if="userId" class="favorite-button" @click.stop="addToFavorites">
+          <img :src="isFavorite() ? favoriteIcon : notFavoriteIcon" alt="Favorite" class="favorite-icon" />
         </button>
-        <button
-          v-if="userId && userId != secondUser"
-          class="contact-button"
-          @click="getChat"
-        >
+        <button v-if="userId && userId != secondUser" class="contact-button" @click="getChat">
           Связаться с продавцом
         </button>
         <div class="flex justify-end w-full">
-          <a
-            href="/auth/login"
-            v-if="!userId"
-            class="contact-button justify-end"
-          >
+          <a href="/auth/login" v-if="!userId" class="contact-button justify-end">
             Авторизоваться
           </a>
         </div>
@@ -165,6 +149,7 @@ const isFavorite = () => {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -176,6 +161,7 @@ const isFavorite = () => {
     transform: scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -230,6 +216,7 @@ const isFavorite = () => {
   line-height: 1.6;
   color: black;
   width: 70%;
+
   p {
     font-size: 20px;
     width: 100%;

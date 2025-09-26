@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile, getUsersByChat,feedback, getChatByUsers, getFavoriteCollectionByUser, getFavorites, addFavorite, getProductById, editProduct, editStatus, getStatuses, getSearched, deleteProduct, readMessage, UnreadMessagesCheck, passRecovery
+from .views import WriteLog, RegisterView, LoginView, LogoutView, createProduct, getCategories, getProducts, getProductsById, getUser, getMessages, getChats, changeUserProfile, getUsersByChat,feedback, getChatByUsers, getFavoriteCollectionByUser, getFavorites, addFavorite, getProductById, editProduct, editStatus, getStatuses, getSearched, deleteProduct, readMessage, UnreadMessagesCheck, passRecovery
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -42,4 +42,5 @@ urlpatterns = [
     path('UnreadMessagesCheck/', UnreadMessagesCheck.as_view(), name='UnreadMessagesCheck'),
     path('passRecovery/', passRecovery.as_view(), name='passRecovery'),
     path('feedback/', feedback.as_view(), name='feedback'),
+    path('log/', WriteLog.as_view(), name='writeLog'),
 ]

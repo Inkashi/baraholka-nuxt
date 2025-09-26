@@ -35,7 +35,7 @@ export default defineNuxtConfig({
           // Добавляем глобальный middleware "auth" для всех страниц
           if (true) {
             page.meta ||= {};
-            page.meta.middleware = ["auth"];
+            page.meta.middleware = ["auth", "log-visit"];
           }
 
           // Рекурсивно обрабатываем дочерние страницы
@@ -45,7 +45,7 @@ export default defineNuxtConfig({
 
           // Добавляем локальный middleware "edit" для конкретной страницы
           if (page.name === "editProduct-product_id") {
-            page.meta.middleware = ["edit"];
+            page.meta.middleware = ["edit", "log-visit"];
           }
         }
       }

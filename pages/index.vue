@@ -49,9 +49,13 @@ const selectSortOption = (option: string) => {
 };
 
 // Открытие модального окна
-const openModal = (product) => {
+const openModal = async (product) => {
   selectedProduct.value = product;
   showModal.value = true;
+  const logText = `Пользователь ${userId.value} открыл объявление ${product.id}`;
+  await axios.post(`${apiBase}/api/log/`, {
+    logText: logText,
+  });
 };
 
 const closeModal = () => {
@@ -114,6 +118,11 @@ const addToFavorites = async (product) => {
     const response = await axios.post(`${apiBase}/api/addFavorite/`, {
       favoriteCollection: favoriteCollection.value,
       productId: product.id,
+    });
+
+    const logText = `Пользователь ${userId.value} лайкнул объявление ${product.id}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
     });
 
     if (response.status === 200) {
@@ -192,11 +201,7 @@ onMounted(() => {
             }}
           </button>
           <ul v-if="isCategoryDropdownOpen" class="category-dropdown">
-            <li
-              v-for="cat in categories"
-              :key="cat.id"
-              @click="selectCategory(cat)"
-            >
+            <li v-for="cat in categories" :key="cat.id" @click="selectCategory(cat)">
               {{ cat.title }}
             </li>
           </ul>
@@ -219,53 +224,28 @@ onMounted(() => {
         </div>
 
         <div class="search-input">
-          <input
-            type="text"
-            v-model="search"
-            @keyup.enter="getSearch"
-            placeholder="Поиск..."
-          />
+          <input type="text" v-model="search" @keyup.enter="getSearch" placeholder="Поиск..." />
           <button @click="getSearch">Найти</button>
         </div>
       </div>
 
       <div class="products-grid">
-        <div
-          v-for="product in products"
-          :key="product.id"
-          class="product-item"
-          @click="openModal(product)"
-        >
+        <div v-for="product in products" :key="product.id" class="product-item" @click="openModal(product)">
           <img :src="'/api/pictures' + product.picture" alt="Product Image" />
           <div class="product-info">
             <p class="card-title">{{ product.title }}</p>
             <p class="card-cost">{{ product.cost }} ₽</p>
           </div>
-          <button
-            v-if="userId"
-            class="favorite-button"
-            @click.stop="addToFavorites(product)"
-          >
-            <img
-              :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon"
-              alt="Favorite"
-            />
+          <button v-if="userId" class="favorite-button" @click.stop="addToFavorites(product)">
+            <img :src="isFavorite(product) ? favoriteIcon : notFavoriteIcon" alt="Favorite" />
           </button>
         </div>
       </div>
 
       <!-- Модальное окно -->
-      <ProductModal
-        v-if="showModal"
-        :showModal="showModal"
-        :selectedProduct="selectedProduct"
-        :favorites="favorites"
-        :userId="userId"
-        :secondUser="selectedProduct?.seller"
-        @update:favorites="favorites = $event"
-        :favoriteCollection="favoriteCollection"
-        @update:showModal="closeModal"
-      />
+      <ProductModal v-if="showModal" :showModal="showModal" :selectedProduct="selectedProduct" :favorites="favorites"
+        :userId="userId" :secondUser="selectedProduct?.seller" @update:favorites="favorites = $event"
+        :favoriteCollection="favoriteCollection" @update:showModal="closeModal" />
     </div>
   </div>
 </template>
@@ -316,11 +296,9 @@ onMounted(() => {
     top: 100%;
     left: 0;
     width: 100%;
-    background-color: color.scale(
-      main.$window-color,
-      $lightness: +15%,
-      $alpha: -10%
-    );
+    background-color: color.scale(main.$window-color,
+        $lightness: +15%,
+        $alpha: -10%);
     border: 1px solid #ccc;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -490,6 +468,7 @@ onMounted(() => {
       justify-content: center;
     }
   }
+
   .search-bar {
     flex-direction: row;
     row-gap: 10px;

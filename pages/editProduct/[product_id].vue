@@ -96,9 +96,19 @@ const editProduct = async () => {
     });
 
     if (response.status === 200) {
+      const logText = `Пользователь ${userId.value} изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
+       cost:${cost.value}, picture:${picture.value}`;
+      await axios.post(`${apiBase}/api/log/`, {
+        logText: logText,
+      });
       navigateTo("/account");
     }
   } catch (error) {
+    const logText = `Пользователь ${userId.value} изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
+       cost:${cost.value}, picture:${picture.value}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+    });
     console.error("Ошибка при изменении товара:", error);
     alert("Произошла ошибка при изменении товара.");
   }
@@ -132,32 +142,17 @@ onMounted(() => {
     <div v-else class="relative cont">
       <h2>Изменение карточки товара</h2>
 
-      <form
-        @submit.prevent="editProduct"
-        enctype="multipart/form-data"
-        class="flex flex-row"
-      >
+      <form @submit.prevent="editProduct" enctype="multipart/form-data" class="flex flex-row">
         <div class="form-image">
           <div class="image-alt" @click="triggerFileInput">
-            <img
-              v-if="picturePreview"
-              :src="
-                picturePreview?.includes('blob')
-                  ? picturePreview
-                  : '/api/pictures' + picturePreview
-              "
-              alt="Превью товара"
-            />
+            <img v-if="picturePreview" :src="picturePreview?.includes('blob')
+              ? picturePreview
+              : '/api/pictures' + picturePreview
+              " alt="Превью товара" />
 
             <span v-else>Загрузите <br />фото <br />товара</span>
           </div>
-          <input
-            type="file"
-            id="product-photo"
-            style="display: none"
-            ref="fileInput"
-            @change="onFileChange"
-          />
+          <input type="file" id="product-photo" style="display: none" ref="fileInput" @change="onFileChange" />
         </div>
 
         <div class="form-info">
@@ -177,12 +172,7 @@ onMounted(() => {
 
           <div class="form-group">
             <label for="description">Описание</label>
-            <textarea
-              id="description"
-              v-model="description"
-              required
-              maxlength="255"
-            ></textarea>
+            <textarea id="description" v-model="description" required maxlength="255"></textarea>
           </div>
 
           <div class="form-group">
@@ -236,6 +226,7 @@ h2 {
   @media (max-width: 1200px) {
     flex-direction: column;
     margin-left: 5%;
+
     textarea,
     input,
     select {

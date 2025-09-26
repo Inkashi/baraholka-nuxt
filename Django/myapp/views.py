@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Product, Category, Chat, Message, Picture, Status, FavoriteCollection, Favorite, RecoveryCode
+from .models import User, Product, Category, Chat, Message, Picture, Status, FavoriteCollection, Favorite, RecoveryCode, Log
 from django.contrib.auth import authenticate, login, logout
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.serializers import serialize
@@ -302,7 +302,7 @@ class getCategories(APIView):
                 'title': category.title
             })
             
-        return JsonResponse(categories, safe=False)
+        return Response(categories, status=status.HTTP_200_OK)
     
 class getUser(APIView):
     def get(self, request):
@@ -765,4 +765,10 @@ class UnreadMessagesCheck(APIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class WriteLog(APIView):
+    def post(self, request):
+        log_text = request.data.get('logText')
+        Log.objects.create(logText = log_text)
+        return Response(status=status.HTTP_200_OK)
 

@@ -123,8 +123,16 @@ const changeName = async () => {
 
       if (response.status === 200) {
         userName.value = newName.value;
+        const logText = `Пользователь ${userId.value} сменил имя на ${newName.value}`;
+        await axios.post(`${apiBase}/api/log/`, {
+          logText: logText,
+        });
       }
     } catch (error) {
+      const logText = `Ошибка!!! Пользователь ${userId.value} сменил имя на ${newName.value}`;
+        await axios.post(`${apiBase}/api/log/`, {
+          logText: logText,
+        });
       console.error("Ошибка при изменении имени:", error);
     }
   }
@@ -159,6 +167,10 @@ const updateStatus = async (product) => {
       product_id: product.id,
       status_id: newStatus,
     });
+    const logText = `Пользователь ${userId.value} обновил статус объявления ${product.id} с ${product.status} на ${newStatus}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+    });
   } catch (error) {
     console.error("Ошибка при обновлении статуса:", error);
   }
@@ -187,20 +199,9 @@ onMounted(() => {
     <div v-else class="userInfo">
       <div class="userInfoFlex">
         <div class="userImage" @click="() => $refs.fileInput.click()">
-          <img
-            v-if="userPhoto"
-            :src="'/api' + userPhoto"
-            alt="Фото пользователя"
-            class="profile-image"
-          />
+          <img v-if="userPhoto" :src="'/api' + userPhoto" alt="Фото пользователя" class="profile-image" />
           <div v-else class="placeholder">Добавить фото</div>
-          <input
-            type="file"
-            accept="image/*"
-            style="display: none"
-            ref="fileInput"
-            @change="handleImageUpload"
-          />
+          <input type="file" accept="image/*" style="display: none" ref="fileInput" @change="handleImageUpload" />
         </div>
 
         <div class="ml-10">
@@ -220,20 +221,12 @@ onMounted(() => {
     </div>
     <div class="products-grid">
       <div v-for="product in products" :key="product.id" class="product-item">
-        <img
-          :src="'/api/pictures' + product.picture.photoPath"
-          alt="Product Image"
-        />
+        <img :src="'/api/pictures' + product.picture.photoPath" alt="Product Image" />
         <div class="product-info">
           <p class="card-title">{{ product.title }}</p>
           <p class="card-cost">{{ product.cost }} руб.</p>
-          <select
-            id="status"
-            :class="statusClass(product)"
-            v-model="productStatuses[product.id]"
-            @change="updateStatus(product)"
-            required
-          >
+          <select id="status" :class="statusClass(product)" v-model="productStatuses[product.id]"
+            @change="updateStatus(product)" required>
             <option v-for="stat in statuses" :value="stat.id">
               {{ stat.title }}
             </option>
@@ -417,6 +410,7 @@ onMounted(() => {
 
 .exit {
   background-color: rgba(255, 0, 0, 0.651) !important;
+
   &:hover {
     background-color: rgb(255, 0, 0);
   }

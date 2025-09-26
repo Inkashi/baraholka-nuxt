@@ -50,7 +50,7 @@ const fetchCategories = async () => {
   try {
     const response = await axios.get(`${apiBase}/api/getCategories/`);
     categories.value = response.data;
-    const temp = categories.value.shift();
+    console.log(response.data);
   } catch (error) {
     console.error("Ошибка при получении категорий:", error);
   }
@@ -92,6 +92,11 @@ const createProduct = async () => {
     );
 
     if (response.status === 200) {
+      const logText = `Пользователь ${userId.value} создал объявление name:${title.value}, description:${description.value}, category:${category.value},
+       cost:${cost.value}`;
+      await axios.post(`${apiBase}/api/log/`, {
+        logText: logText,
+      });
       navigateTo("/account");
       title.value = "";
       description.value = "";
@@ -101,6 +106,11 @@ const createProduct = async () => {
       picturePreview.value = null;
     }
   } catch (error) {
+    const logText = `Ошибка!!! Пользователь ${userId.value} создал объявление name:${title.value}, description:${description.value}, category:${category.value},
+       cost:${cost.value}`;
+      await axios.post(`${apiBase}/api/log/`, {
+        logText: logText,
+      });
     console.error("Ошибка при создании товара:", error);
     alert("Произошла ошибка при создании товара.");
   }
@@ -118,27 +128,13 @@ onMounted(() => {
     <div v-else class="relative cont">
       <h2>Создание карточки товара</h2>
 
-      <form
-        @submit.prevent="createProduct"
-        enctype="multipart/form-data"
-        class="flex flex-row"
-      >
+      <form @submit.prevent="createProduct" enctype="multipart/form-data" class="flex flex-row">
         <div class="form-image">
           <div class="image-alt" @click="triggerFileInput">
-            <img
-              v-if="picturePreview"
-              :src="picturePreview"
-              alt="Превью товара"
-            />
+            <img v-if="picturePreview" :src="picturePreview" alt="Превью товара" />
             <span v-else>Загрузите <br />фото <br />товара</span>
           </div>
-          <input
-            type="file"
-            id="product-photo"
-            style="display: none"
-            ref="fileInput"
-            @change="onFileChange"
-          />
+          <input type="file" id="product-photo" style="display: none" ref="fileInput" @change="onFileChange" />
         </div>
         <div class="form-info">
           <div class="form-group">
@@ -157,11 +153,7 @@ onMounted(() => {
 
           <div class="form-group">
             <label for="description">Описание</label>
-            <textarea
-              id="description"
-              v-model="description"
-              required
-            ></textarea>
+            <textarea id="description" v-model="description" required></textarea>
           </div>
 
           <div class="form-group">
@@ -213,6 +205,7 @@ h2 {
   @media (max-width: 1200px) {
     flex-direction: column;
     margin-left: 5%;
+
     textarea,
     input,
     select {

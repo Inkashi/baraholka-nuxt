@@ -146,6 +146,14 @@ class RecoveryCode(models.Model):
         db_table = 'recoveryCodes'
         managed = True
 
+class Log(models.Model):
+    id = models.AutoField(primary_key=True)
+    logText = models.TextField()
+
+    class Meta:
+        db_table = 'logs'
+        managed = True
+
 
 
 

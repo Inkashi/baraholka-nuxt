@@ -169,12 +169,20 @@ const sendMessage = async () => {
       receiver: otherUser.value.id,
       message: newMessage.value,
     });
+    const logText = `Пользователь ${user.value.id} отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+    });
 
     if (response.status === 200) {
       scrollToBottom();
       newMessage.value = "";
     }
   } catch (error) {
+    const logText = `Ошибка!!! Пользователь ${user.value.id} отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+    });
     console.error("Ошибка при отправке сообщения:", error);
   }
 };
@@ -191,24 +199,20 @@ const sendMessage = async () => {
       </div>
       <div ref="messagesList" class="messages-list">
         <div v-for="message in messages" :key="message.id" :data-message-id="message.id" class="message-item">
-          <div :class="['message', { 'is-sender': message.sender === userId}]">
+          <div :class="['message', { 'is-sender': message.sender === userId }]">
             <div class="message-content">
               <p>{{ message.message }}</p>
               <span class="time">{{ formatDate(message.sendingTime) }}</span>
-              <img class = 'read' v-if="message.isRead && message.sender == userId" src="/assets/image/read.png" alt="">
-              <img class = 'read' v-if="!message.isRead && message.sender == userId" src="/assets/image/notRead.png" alt="">
+              <img class='read' v-if="message.isRead && message.sender == userId" src="/assets/image/read.png" alt="">
+              <img class='read' v-if="!message.isRead && message.sender == userId" src="/assets/image/notRead.png"
+                alt="">
             </div>
           </div>
         </div>
       </div>
 
       <form @submit.prevent="sendMessage" class="send-message-form">
-        <input
-          v-model="newMessage"
-          type="text"
-          placeholder="Ответить..."
-          class="message-input"
-        />
+        <input v-model="newMessage" type="text" placeholder="Ответить..." class="message-input" />
         <button type="submit" class="btn">Отправить</button>
       </form>
     </div>
@@ -217,6 +221,7 @@ const sendMessage = async () => {
 
 <style lang="scss" scoped>
 @use "~/assets/scss/main.scss" as main;
+
 .companion {
   font-weight: bold;
   font-size: 24px;
@@ -314,10 +319,10 @@ const sendMessage = async () => {
 
 .read {
   position: absolute;
-  bottom: 0; 
-  left: 0; 
-  width: 20px; 
-  height: 20px; 
-  pointer-events: none; 
+  bottom: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
 }
 </style>

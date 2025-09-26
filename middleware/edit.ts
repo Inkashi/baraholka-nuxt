@@ -30,7 +30,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const product = response.data;
 
     // Проверяем, является ли текущий пользователь создателем продукта
-    if (product.seller !== userId) {
+    if (product.seller != userId) {
       console.warn("У пользователя нет прав для редактирования этого продукта");
       return navigateTo("/"); // Перенаправляем на главную страницу
     }
