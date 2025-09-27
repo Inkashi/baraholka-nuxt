@@ -47,6 +47,9 @@ export default defineNuxtConfig({
           if (page.name === "editProduct-product_id") {
             page.meta.middleware = ["edit", "log-visit"];
           }
+          if (page.name === "logs") {
+            page.meta.middleware = ["logs"];
+          }
         }
       }
 
