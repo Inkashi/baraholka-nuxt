@@ -148,7 +148,10 @@ class RecoveryCode(models.Model):
 
 class Log(models.Model):
     id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userIdLog')
     logText = models.TextField()
+    type = models.IntegerField(default=1)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'logs'

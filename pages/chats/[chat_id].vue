@@ -169,9 +169,11 @@ const sendMessage = async () => {
       receiver: otherUser.value.id,
       message: newMessage.value,
     });
-    const logText = `Пользователь ${user.value.id} отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
+    const logText = `Отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: user.value.id,
+      type: 3
     });
 
     if (response.status === 200) {
@@ -179,9 +181,11 @@ const sendMessage = async () => {
       newMessage.value = "";
     }
   } catch (error) {
-    const logText = `Ошибка!!! Пользователь ${user.value.id} отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
+    const logText = `Ошибка!!! Отправил сообщение ${newMessage.value} Пользователю ${otherUser.value.id}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: user.value.id,
+      type: 3
     });
     console.error("Ошибка при отправке сообщения:", error);
   }

@@ -768,7 +768,45 @@ class UnreadMessagesCheck(APIView):
         
 class WriteLog(APIView):
     def post(self, request):
+        userId = request.data.get('userId')
+        user = User.objects.get(id = userId)
+        type = request.data.get('type')
+        if type == None:
+            type = 1
         log_text = request.data.get('logText')
-        Log.objects.create(logText = log_text)
+        Log.objects.create(user = user, type = type, logText = log_text)
         return Response(status=status.HTTP_200_OK)
+    
+class getLogs(APIView):
+    def post(self, request):
+        userId = request.data.get('userId')
+        type = request.data.get('type')
+        page = int(request.data.get('page'))
+        
+        limit = 20
+        offset = (page - 1) * limit
+
+        queryset = Log.objects.all()
+
+        if userId is not None:
+            user = User.objects.get(id = userId)
+            queryset = queryset.filter(user = user)
+        
+        if type is not None:
+            queryset = queryset.filter(type = type)
+        
+        queryset = queryset[offset:offset + limit]
+
+        logs = [
+            {
+                "id": log.id,
+                "type": log.type,
+                "user_id": log.user.id,
+                "text": log.logText,
+                "created": log.created
+            }
+            for log in queryset
+        ]
+
+        return Response(logs ,status=status.HTTP_200_OK)
 

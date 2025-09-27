@@ -96,18 +96,22 @@ const editProduct = async () => {
     });
 
     if (response.status === 200) {
-      const logText = `Пользователь ${userId.value} изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
+      const logText = `Изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
        cost:${cost.value}, picture:${picture.value}`;
       await axios.post(`${apiBase}/api/log/`, {
         logText: logText,
+        userId: userId.value,
+        type: 2
       });
       navigateTo("/account");
     }
   } catch (error) {
-    const logText = `Пользователь ${userId.value} изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
+    const logText = `Изменил объявление name:${title.value}, description:${description.value}, category:${category.value},
        cost:${cost.value}, picture:${picture.value}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: userId.value,
+      type: 2
     });
     console.error("Ошибка при изменении товара:", error);
     alert("Произошла ошибка при изменении товара.");

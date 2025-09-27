@@ -10,17 +10,17 @@ export default defineNuxtRouteMiddleware((to, from) => {
     const userId = decodedToken.user_id || null;
 
     // Формируем сообщение
-    const logText = `Пользователь ${userId} посетил страницу ${to.fullPath} в ${new Date().toISOString()}`;
+    const logText = `Пользователь ${userId} посетил страницу ${to.fullPath}`;
 
     // Отправляем на бэкенд (ваш Django API)
     const config = useRuntimeConfig();
     const apiBase = config.public.apiBase;
-
+    
     // Используем $fetch (встроенный в Nuxt)
     if (userId != null) {
       $fetch(`${apiBase}/api/log/`, {
         method: 'POST',
-        body: { 'logText': logText },
+        body: { 'logText': logText , 'userId': userId},
         headers: {
           'Content-Type': 'application/json',
         },

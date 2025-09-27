@@ -123,15 +123,19 @@ const changeName = async () => {
 
       if (response.status === 200) {
         userName.value = newName.value;
-        const logText = `Пользователь ${userId.value} сменил имя на ${newName.value}`;
+        const logText = `Cменил имя на ${newName.value}`;
         await axios.post(`${apiBase}/api/log/`, {
           logText: logText,
+          userId: userId.value,
+          type: 3
         });
       }
     } catch (error) {
-      const logText = `Ошибка!!! Пользователь ${userId.value} сменил имя на ${newName.value}`;
+      const logText = `Ошибка!!! Сменил имя на ${newName.value}`;
         await axios.post(`${apiBase}/api/log/`, {
           logText: logText,
+          userId: userId.value,
+          type: 3
         });
       console.error("Ошибка при изменении имени:", error);
     }
@@ -167,9 +171,11 @@ const updateStatus = async (product) => {
       product_id: product.id,
       status_id: newStatus,
     });
-    const logText = `Пользователь ${userId.value} обновил статус объявления ${product.id} с ${product.status} на ${newStatus}`;
+    const logText = `Обновил статус объявления ${product.id} с ${product.status} на ${newStatus}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: userId,
+      type: 2
     });
   } catch (error) {
     console.error("Ошибка при обновлении статуса:", error);

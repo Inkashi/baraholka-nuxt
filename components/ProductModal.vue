@@ -36,9 +36,11 @@ const getChat = async () => {
       firstUser: props.userId,
       secondUser: props.secondUser,
     });
-    const logText = `Пользователь ${props.userId} создал чат с  ${props.secondUser}`;
+    const logText = `Создал чат с  ${props.secondUser}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: props.userId,
+      type: 3
     });
 
     const chat_id = response.data;

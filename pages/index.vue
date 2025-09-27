@@ -52,9 +52,11 @@ const selectSortOption = (option: string) => {
 const openModal = async (product) => {
   selectedProduct.value = product;
   showModal.value = true;
-  const logText = `Пользователь ${userId.value} открыл объявление ${product.id}`;
+  const logText = `Открыл объявление ${product.id}`;
   await axios.post(`${apiBase}/api/log/`, {
     logText: logText,
+    userId: userId.value,
+    type: 2
   });
 };
 
@@ -120,9 +122,11 @@ const addToFavorites = async (product) => {
       productId: product.id,
     });
 
-    const logText = `Пользователь ${userId.value} лайкнул объявление ${product.id}`;
+    const logText = `Лайкнул объявление ${product.id}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
+      userId: userId.value,
+      type: 2
     });
 
     if (response.status === 200) {

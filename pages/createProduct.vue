@@ -92,10 +92,12 @@ const createProduct = async () => {
     );
 
     if (response.status === 200) {
-      const logText = `Пользователь ${userId.value} создал объявление name:${title.value}, description:${description.value}, category:${category.value},
+      const logText = `Создал объявление name:${title.value}, description:${description.value}, category:${category.value},
        cost:${cost.value}`;
       await axios.post(`${apiBase}/api/log/`, {
         logText: logText,
+        userId: userId.value,
+        type: 2
       });
       navigateTo("/account");
       title.value = "";
@@ -106,10 +108,12 @@ const createProduct = async () => {
       picturePreview.value = null;
     }
   } catch (error) {
-    const logText = `Ошибка!!! Пользователь ${userId.value} создал объявление name:${title.value}, description:${description.value}, category:${category.value},
+    const logText = `Ошибка!!! Создал объявление name:${title.value}, description:${description.value}, category:${category.value},
        cost:${cost.value}`;
       await axios.post(`${apiBase}/api/log/`, {
         logText: logText,
+        userId: userId.value,
+        type: 2
       });
     console.error("Ошибка при создании товара:", error);
     alert("Произошла ошибка при создании товара.");
