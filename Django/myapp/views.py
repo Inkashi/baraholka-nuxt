@@ -47,6 +47,7 @@ class RegisterView(APIView):
 
         return Response({
             'message': 'Регистрация успешна',
+            'id': user.id,
             'tokens': {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -809,4 +810,51 @@ class getLogs(APIView):
         ]
 
         return Response(logs ,status=status.HTTP_200_OK)
+    
+class getStatsLogs(APIView):
+    def post(self, request):
+        now = timezone.now()
+        last_24_hours = now - timedelta(hours=24)
+        logs = Log.objects.filter(created__gte=last_24_hours)
+
+        count1 = logs.filter(logText__regex=r'^Обновил статус объявления \d+ с \d на 1$').count()
+        count2 = logs.filter(logText__regex=r'^Обновил статус объявления \d+ с \d на 2$').count()
+        count3 = logs.filter(logText__regex=r'^Обновил статус объявления \d+ с \d на 3$').count()
+        statuses = [count1, count2, count3]
+
+        count4 = logs.filter(logText__regex=r'^Пользователь \d+ залогинился').count()
+        count5 = logs.filter(logText__regex=r'^Пользователь \d+ зарегистрировался').count()
+        LR = [count4, count5]
+
+        return Response({'lr': LR, 'statuses': statuses}, status=status.HTTP_200_OK)
+
+class countRegisterToChat(APIView):
+    def post(self, request):
+        userId = request.data.get('userId')
+        user = User.objects.get(id = userId)
+
+        registration_log = Log.objects.get(
+        user=user,
+        logText=f'Пользователь {user.id} зарегистрировался')
+        reg_time = registration_log.created
+
+        chat_log = Log.objects.filter(
+            user=user,
+            logText__regex=r'^Создал чат с  \d+$'
+        ).order_by('created').first()
+        chat_time = chat_log.created
+
+        count = Log.objects.filter(
+            user=user,
+            created__gte=reg_time,
+            created__lte=chat_time
+        ).order_by('created').count()
+
+        return Response(count, status=status.HTTP_200_OK)
+
+
+
+
+
+
 

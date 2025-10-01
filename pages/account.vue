@@ -174,7 +174,7 @@ const updateStatus = async (product) => {
     const logText = `Обновил статус объявления ${product.id} с ${product.status} на ${newStatus}`;
     await axios.post(`${apiBase}/api/log/`, {
       logText: logText,
-      userId: userId,
+      userId: userId.value,
       type: 2
     });
   } catch (error) {
@@ -233,8 +233,11 @@ onMounted(() => {
           <p class="card-cost">{{ product.cost }} руб.</p>
           <select id="status" :class="statusClass(product)" v-model="productStatuses[product.id]"
             @change="updateStatus(product)" required>
-            <option v-for="stat in statuses" :value="stat.id">
+            <option v-if="productStatuses[product.id]!=3" v-for="stat in statuses" :value="stat.id">
               {{ stat.title }}
+            </option>
+            <option v-else :class="statusClass(product)" :value="productStatuses[product.id]">
+              {{ productStatuses[product.id] }}
             </option>
           </select>
           <a class="edit-button" :href="`/editProduct/${product.id}`">

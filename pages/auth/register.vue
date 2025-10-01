@@ -62,6 +62,12 @@ const submitForm = async () => {
       formData
     );
     console.log(response.data);
+    const logText = `Пользователь ${response.data.id} зарегистрировался`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+      userId: response.data.id,
+      type: 4
+    });
     navigateTo("/auth/login");
   } catch (error: any) {
     if (error.response) {

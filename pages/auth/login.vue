@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from "axios";
 import { ref } from "vue";
+import { jwtDecode } from "jwt-decode";
 
 const email = ref<string>("");
 const pass = ref<string>("");
@@ -79,6 +80,13 @@ const login = async () => {
     refreshToken.value = response.data.tokens.refresh;
     userEmail.value = email.value;
     userInfo.loginUser();
+    const token = jwtDecode(response.data.tokens.access);
+    const logText = `Пользователь ${token.user_id} залогинился`;
+    await axios.post(`${apiBase}/api/log/`, {
+      logText: logText,
+      userId: token.user_id,
+      type: 4
+    });
   } catch (error: any) {
     if (error.response) {
       errorMessage.value = "Что-то не совпадает, проверьте свои данные";
@@ -125,6 +133,7 @@ const passRecoveryPost = async () => {
 
     if (response.status == 200) {
       checkRecovery.value = false;
+      
     }
   } catch (error: any) {
     if (error.status == 400) {
