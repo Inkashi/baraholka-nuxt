@@ -92,6 +92,10 @@ const isFavorite = () => {
             <strong>Цена: </strong>
             <span class="price">{{ selectedProduct.cost }} руб.</span>
           </p>
+          <p>
+            <strong>Продавец: </strong>
+            <span class="price">{{ selectedProduct.sellerName }}</span>
+          </p>
         </div>
       </div>
       <!-- Кнопки действий -->

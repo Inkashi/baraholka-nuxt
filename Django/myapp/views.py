@@ -103,7 +103,8 @@ class getProducts(APIView):
                     'cost': product.cost,
                     'picture': product.picture.picturePath,
                     'description': product.description,
-                    'seller': product.seller.id
+                    'seller': product.seller.id,
+                    'sellerName': product.seller.name
                 })
 
             return JsonResponse(products, safe=False)
@@ -713,6 +714,7 @@ class getSearched(APIView):
                         'picture': product.picture.picturePath,
                         'description': product.description,
                         'seller': product.seller.id,
+                        'sellerName':product.seller.name,
                         'createdTime': product.createdTime
                     })
 
@@ -851,6 +853,16 @@ class countRegisterToChat(APIView):
         ).order_by('created').count()
 
         return Response(count, status=status.HTTP_200_OK)
+    
+class getUsers(APIView):
+    def get(self, request):
+        usersTemp = User.objects.all()
+        users = [{'id': user.id,
+                  'name': user.name,
+                  'email': user.email
+                  } for user in usersTemp]
+        
+        return Response(users, status=status.HTTP_200_OK)
 
 
 
