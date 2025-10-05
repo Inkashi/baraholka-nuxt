@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: pd
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    environment:
+      - API_BASE=http://backend:8000
+      - NUXT_SESSION_PASSWORD=your_very_strong_secret_password_64_characters_or_more
+
+volumes:
+  mysql_data:

@@ -192,7 +192,7 @@ class createProduct(APIView):
         pic = None
 
         try:
-            target_directory = os.path.join(os.getcwd(), '../.output/pictures/products')
+            target_directory = os.path.join(os.getcwd(), '../frontend/.output/pictures/products')
             os.makedirs(target_directory, exist_ok=True)
 
             fileName = picture.name
@@ -240,7 +240,7 @@ class editProduct(APIView):
             try:
                 product = Product.objects.get(id=id)
                 if picture:
-                    target_directory = os.path.join(os.getcwd(), '../.output/pictures/products')
+                    target_directory = os.path.join(os.getcwd(), '../frontend/.output/pictures/products')
                     os.makedirs(target_directory, exist_ok=True)
 
                     fileName = picture.name
@@ -249,7 +249,7 @@ class editProduct(APIView):
                     target_path = os.path.join(target_directory, file_name)
 
                     if product.picture and product.picture.picturePath:
-                        old_file_path = os.path.join(os.getcwd(), '../.output/pictures', product.picture.picturePath[1:])
+                        old_file_path = os.path.join(os.getcwd(), '../frontend/.output/pictures', product.picture.picturePath[1:])
                         if os.path.exists(old_file_path):
                             os.remove(old_file_path)
 
@@ -445,7 +445,7 @@ class changeUserProfile(APIView):
         user = User.objects.get(id = userId)
         try:
             if photo:
-                target_directory = os.path.join(os.getcwd(), '../.output/pictures/users/')
+                target_directory = os.path.join(os.getcwd(), '../frontend/.output/pictures/users/')
                 os.makedirs(target_directory, exist_ok=True)
 
                 fileName = photo.name
